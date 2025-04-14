@@ -3,10 +3,127 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:materialDesignIcons="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
         xmlns:local="clr-namespace:EndoscopyAI.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="辅助诊断系统" Height="450" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
+            <!-- 自定义按钮样式 -->
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Padding" Value="10" />
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- 自定义 TextBlock 样式 -->
+            <Style TargetType="TextBlock">
+                <Setter Property="Margin" Value="10,5" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="14" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 顶部工具栏 -->
+        <materialDesign:ColorZone Mode="PrimaryMid" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="我们的LOGO" FontSize="16" FontWeight="Bold" Foreground="White" />
+                <Button Content="打开" Width="80" Margin="20,0,5,0" FontSize="10" Click="LoadFile"/>
+                <Button Content="保存" Width="80" Margin="5" FontSize="10" Click="SaveFile"/>
+                <Button Content="帮助" Width="80" Margin="5" FontSize="10"/>
+            </StackPanel>
+        </materialDesign:ColorZone>
+
+        <!-- 主内容区域 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="1.3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧功能按钮 -->
+            <materialDesign:Card Grid.Column="0" Margin="10" Padding="5">
+                <StackPanel>
+                    <Button Height="50" Click="ImgEnhance">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesignIcons:PackIcon Kind="ImageFilter" Margin="0,5,5,0" />
+                                <TextBlock Text="图像增强" />
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
+                    <Button Height="50" Click="ImgDenoise">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesignIcons:PackIcon Kind="ImageFilterNone" Margin="0,5,5,0" />
+                                <TextBlock Text="图像降噪" />
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
+                    <Button Height="50" Click="WhiteBalance">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesignIcons:PackIcon Kind="WhiteBalanceAuto" Margin="0,5,5,0" />
+                                <TextBlock Text="平衡矫正" />
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- 中间主区域（可扩展） -->
+            <materialDesign:Card Grid.Column="1" Margin="10" Padding="10">
+                <Image x:Name="ImageDisplay" Stretch="Uniform" />
+            </materialDesign:Card>
+
+            <!-- 右侧信息面板 -->
+            <materialDesign:Card Grid.Column="2" Margin="10" Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="6.5*" />
+                        <RowDefinition Height="3.5*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0">
+                        <TextBlock Text="患者信息" FontSize="16" FontWeight="Bold" />
+                        <TextBlock Text="患者信息患者信息" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1">
+                        <TextBlock Text="诊断结果" FontSize="16" FontWeight="Bold" />
+                        <TextBlock Text="诊断结果" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </materialDesign:Card>
+        </Grid>
     </Grid>
 </Window>

@@ -18,7 +18,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- 自定义按钮样式，带动画 -->
+            <!-- 自定义按钮样式 -->
             <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
                 <Setter Property="Margin" Value="5" />
                 <Setter Property="Padding" Value="10" />
@@ -58,8 +58,8 @@
         <materialDesign:ColorZone Mode="PrimaryMid" Padding="10">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="我们的LOGO" FontSize="16" FontWeight="Bold" Foreground="White" />
-                <Button Content="打开" Width="80" Margin="20,0,5,0" FontSize="10"/>
-                <Button Content="编辑" Width="80" Margin="5" FontSize="10"/>
+                <Button Content="打开" Width="80" Margin="20,0,5,0" FontSize="10" Click="LoadFile"/>
+                <Button Content="保存" Width="80" Margin="5" FontSize="10" Click="SaveFile"/>
                 <Button Content="帮助" Width="80" Margin="5" FontSize="10"/>
             </StackPanel>
         </materialDesign:ColorZone>
@@ -95,7 +95,7 @@
                         <Button.Content>
                             <StackPanel Orientation="Horizontal">
                                 <materialDesignIcons:PackIcon Kind="WhiteBalanceAuto" Margin="0,5,5,0" />
-                                <TextBlock Text="白平衡矫正" />
+                                <TextBlock Text="平衡矫正" />
                             </StackPanel>
                         </Button.Content>
                     </Button>
@@ -104,7 +104,7 @@
 
             <!-- 中间主区域（可扩展） -->
             <materialDesign:Card Grid.Column="1" Margin="10" Padding="10">
-                <TextBlock Text="图像展示" FontSize="14" />
+                <Image x:Name="ImageDisplay" Stretch="Uniform" />
             </materialDesign:Card>
 
             <!-- 右侧信息面板 -->

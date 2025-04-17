@@ -12,18 +12,24 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using EndoscopyAI.ViewModels;
 using OnnxImageClassifierWPF;
+using System.ComponentModel;
 
 namespace EndoscopyAI.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : System.Windows.Window
+    public partial class MainWindow : System.Windows.Window, INotifyPropertyChanged
     {
-        private string imagePath; // 用于存储图像路径
-        private readonly IImageDisplay _imageDisplay; // 用于加载和保存图像的实例
-        private Mat _currentImage; // 用于存储当前加载的图像
-        private Mat _originImage; // 用于存储原始图像
+        // 用于存储图像路径
+        private string imagePath;
+        // 用于加载和保存图像的实例
+        private readonly IImageDisplay _imageDisplay;
+        // 用于存储当前加载的图像
+        private Mat _currentImage;
+        // 用于存储原始图像
+        private Mat _originImage;
+        // 用于存储分类器
         private OnnxClassifier classifier = new OnnxClassifier(
             System.IO.Path.Combine(
                  AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
@@ -31,14 +37,31 @@ namespace EndoscopyAI.Views
                 "ClassifyModel.onnx"
             )
         );
+        // 用于存储分类标签
         private string[] labels = { "Barrett", "Cancer", "Inflammation", "Normal" };
+        // 用于存储滑动条的可见性状态
+        private bool _isSliderVisible;
+        public bool IsSliderVisible
+        {
+            get => _isSliderVisible;
+            set
+            {
+                _isSliderVisible = value;
+                OnPropertyChanged(nameof(IsSliderVisible));
+            }
+        }
+        // 用于存储滑动条的值
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public MainWindow()
         {
             InitializeComponent();
             _imageDisplay = new ImageDisplay(); // 初始化 ImageDisplay 实例
+            DataContext = this; // DataContext 设置为自身
+            IsSliderVisible = false; // 默认隐藏滑动条
         }
 
+        // 加载图像文件
         private void LoadFile(object sender, RoutedEventArgs e)
         {
             // 打开文件对话框
@@ -65,6 +88,7 @@ namespace EndoscopyAI.Views
             }
         }
 
+        // 保存图像文件
         private void SaveFile(object sender, RoutedEventArgs e)
         {
             if (_currentImage == null)
@@ -101,6 +125,7 @@ namespace EndoscopyAI.Views
             }
         }
 
+        // 图像增强
         private void ImgEnhance(object sender, RoutedEventArgs e)
         {
             if (_currentImage == null)
@@ -123,6 +148,7 @@ namespace EndoscopyAI.Views
             }
         }
 
+        // 图像去噪
         private void ImgDenoise(object sender, RoutedEventArgs e)
         {
             if (_currentImage == null)
@@ -145,28 +171,7 @@ namespace EndoscopyAI.Views
             }
         }
 
-        private void WhiteBalance(object sender, RoutedEventArgs e)
-        {
-            if (_currentImage == null)
-            {
-                MessageBox.Show("尚未导入图像！", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            try
-            {
-                // 图像白平衡处理
-                var imageProcess = new ImageProcess();
-                _currentImage = imageProcess.WhiteBalance(_currentImage); // 更新 _currentImage
-
-                // 显示白平衡调整后的图像
-                _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"白平衡调整时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
+        // 图像重置
         private void ImgReset(object sender, RoutedEventArgs e)
         {
             if (_originImage != null)
@@ -180,6 +185,7 @@ namespace EndoscopyAI.Views
             }
         }
 
+        // 图像分类
         private void ClassPredict(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(imagePath))
@@ -190,6 +196,51 @@ namespace EndoscopyAI.Views
             var (predictedClass, confidence) = classifier.Predict(imagePath);
             ClassifyResult.Text = $"预测分类：{labels[predictedClass]}";
             ClassifyConfidence.Text = $"分类置信度：{confidence:F2}%";
+        }
+
+        // 照度调节（调整滑动条状态）
+        private void LightAugest(object sender, RoutedEventArgs e)
+        {
+            // 切换滑动条显示状态
+            IsSliderVisible = !IsSliderVisible;
+        }
+
+        // 照度调节滑动条值变化事件
+        private void BalanceSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            // 处理滑动条值变化，调整图像的参数
+            double sliderValue = BalanceSlider.Value;
+            // map
+            double highlight_factor = sliderValue / 100.0 * 2 - 1; 
+            // 进行处理
+            if (_currentImage == null)
+            {
+                MessageBox.Show("尚未导入图像！", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            try
+            {
+                // 先恢复原图
+                _currentImage = _originImage.Clone();
+
+                // 图像增强处理
+                var imageProcess = new ImageProcess();
+                _currentImage = imageProcess.AdjustHighlight(_currentImage, highlight_factor); // 更新 _currentImage
+
+                // 显示增强后的图像
+                _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"图像照度调节时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+        }
+
+        // 关闭窗口事件
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

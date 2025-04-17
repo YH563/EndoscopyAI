@@ -7,7 +7,7 @@
         xmlns:materialDesignIcons="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
         xmlns:local="clr-namespace:EndoscopyAI.Views"
         mc:Ignorable="d"
-        Title="辅助诊断系统" Height="450" Width="800"
+        Title="辅助诊断系统" Height="700" Width="1250"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <ResourceDictionary>
@@ -17,6 +17,9 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Boolean to Visibility Converter -->
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
             <!-- 自定义按钮样式 -->
             <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
@@ -44,6 +47,40 @@
                 <Setter Property="Margin" Value="10,5" />
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="FontSize" Value="14" />
+            </Style>
+
+            <!-- 滑动条动画样式 -->
+            <Style x:Key="SliderContainerStyle" TargetType="StackPanel">
+                <Setter Property="Height" Value="0" />
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSliderVisible}" Value="True">
+                        <DataTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
+                                        <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
+                                    </ObjectAnimationUsingKeyFrames>
+                                    <DoubleAnimation Storyboard.TargetProperty="Height"
+                                                    To="50" Duration="0:0:0.3"
+                                                    DecelerationRatio="0.9" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.EnterActions>
+                        <DataTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Height"
+                                                    To="0" Duration="0:0:0.3"
+                                                    AccelerationRatio="0.9" />
+                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
+                                        <DiscreteObjectKeyFrame KeyTime="0:0:0.3" Value="{x:Static Visibility.Collapsed}" />
+                                    </ObjectAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.ExitActions>
+                    </DataTrigger>
+                </Style.Triggers>
             </Style>
         </ResourceDictionary>
     </Window.Resources>
@@ -75,7 +112,7 @@
 
             <!-- 左侧功能按钮 -->
             <materialDesign:Card Grid.Column="0" Margin="10" Padding="5">
-                <StackPanel>
+                <StackPanel x:Name="ButtonPanel" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
                     <Button Height="50" Click="ImgEnhance">
                         <Button.Content>
                             <StackPanel Orientation="Horizontal">
@@ -92,14 +129,24 @@
                             </StackPanel>
                         </Button.Content>
                     </Button>
-                    <Button Height="50" Click="WhiteBalance">
+                    <Button Height="50" Click="LightAugest">
                         <Button.Content>
                             <StackPanel Orientation="Horizontal">
                                 <materialDesignIcons:PackIcon Kind="WhiteBalanceAuto" Margin="0,5,5,0" />
-                                <TextBlock Text="平衡矫正" />
+                                <TextBlock Text="照度调节" />
                             </StackPanel>
                         </Button.Content>
                     </Button>
+                    <!-- 滑动条容器 -->
+                    <StackPanel Style="{StaticResource SliderContainerStyle}">
+                        <Slider x:Name="BalanceSlider"
+                            Minimum="0"
+                            Maximum="100"
+                            ValueChanged="BalanceSlider_ValueChanged" 
+                            Margin="0,10,0,0"
+                            Width="200"
+                        />
+                    </StackPanel>
                     <Button Height="50" Click="ClassPredict">
                         <Button.Content>
                             <StackPanel Orientation="Horizontal">

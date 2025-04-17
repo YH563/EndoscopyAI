@@ -50,7 +50,7 @@ namespace OnnxImageClassifierWPF
             var output = results.First().AsEnumerable<float>().ToArray();
 
             // 计算置信度
-            var probabilities = Normalize(output);
+            var probabilities = Softmax(output);
             int predictedClass = Array.IndexOf(probabilities, probabilities.Max());
             float confidence = probabilities[predictedClass] * 100;
 

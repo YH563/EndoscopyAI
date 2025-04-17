@@ -17,6 +17,9 @@ namespace EndoscopyAI.ViewModels
 
         // 白平衡矫正
         Mat WhiteBalance(Mat input, Rect? roi = null);
+
+        // 高光调整
+        Mat AdjustHighlight(Mat input, double highlightFactor);
     }
 
     public class ImageProcess : IImageProcess
@@ -59,7 +62,7 @@ namespace EndoscopyAI.ViewModels
             }
         }
 
-        // 占位实现：图像降噪
+        // 图像降噪
         public Mat AnisotropicDiffusion(Mat input, int iterations = 10, float kappa = 50.0f)
         {
             if (input == null || input.Empty())
@@ -196,5 +199,55 @@ namespace EndoscopyAI.ViewModels
             return output;
         }
 
+        public Mat AdjustHighlight(Mat input, double highlightFactor)
+        {
+            if (input == null || input.Empty())
+                throw new ArgumentNullException(nameof(input), "输入图像不能为空");
+
+            if (input.Channels() != 3)
+                throw new NotSupportedException("高光调整仅支持三通道图像");
+
+            // 转换到 HSV 色空间以调整亮度
+            Mat hsvImage = new Mat();
+            Cv2.CvtColor(input, hsvImage, ColorConversionCodes.BGR2HSV);
+
+            // 分离 HSV 通道
+            Mat[] hsvChannels = Cv2.Split(hsvImage);
+
+            // 获取亮度通道 (V 通道)
+            Mat valueChannel = hsvChannels[2];
+
+            // 调整高光：通过非线性变换控制亮度
+            Mat adjustedValue = new Mat();
+            valueChannel.ConvertTo(adjustedValue, MatType.CV_8UC1, 1.0, 0);
+
+            // 应用高光调整公式：V' = V * (1 + factor * (V/255)^2)
+            // 当 factor < 0 时抑制高光，当 factor > 0 时增强高光
+            for (int i = 0; i < adjustedValue.Rows; i++)
+            {
+                for (int j = 0; j < adjustedValue.Cols; j++)
+                {
+                    byte pixelValue = adjustedValue.At<byte>(i, j);
+                    float normalizedValue = pixelValue / 255.0f;
+                    double adjustment = 1.0f + highlightFactor * normalizedValue * normalizedValue;
+                    int newValue = (int)(pixelValue * adjustment);
+                    newValue = Math.Min(255, Math.Max(0, newValue)); // 限制在 0-255 范围内
+                    adjustedValue.Set(i, j, (byte)newValue);
+                }
+            }
+
+            // 更新亮度通道
+            hsvChannels[2] = adjustedValue;
+
+            // 合并 HSV 通道
+            Mat adjustedHsv = new Mat();
+            Cv2.Merge(hsvChannels, adjustedHsv);
+
+            // 转换回 BGR 色空间
+            Mat output = new Mat();
+            Cv2.CvtColor(adjustedHsv, output, ColorConversionCodes.HSV2BGR);
+
+            return output;
+        }
     }
 }

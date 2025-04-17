@@ -21,6 +21,7 @@ namespace EndoscopyAI.Views
     {
         private readonly IImageDisplay _imageDisplay; // 用于加载和保存图像的实例
         private Mat _currentImage; // 用于存储当前加载的图像
+        private Mat _originImage; // 用于存储原始图像
 
         public MainWindow()
         {
@@ -40,8 +41,8 @@ namespace EndoscopyAI.Views
             {
                 try
                 {
-                    // 加载图像并存储到 _currentImage
-                    _currentImage = _imageDisplay.LoadImageFromFile(openFileDialog.FileName);
+                    _currentImage = _imageDisplay.LoadImageFromFile(openFileDialog.FileName);// 加载图像并存储到 _currentImage
+                    _originImage = _currentImage.Clone(); // 克隆原始图像
 
                     // 在 Image 控件中显示图像
                     _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
@@ -152,6 +153,19 @@ namespace EndoscopyAI.Views
             catch (Exception ex)
             {
                 MessageBox.Show($"白平衡调整时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ImgReset(object sender, RoutedEventArgs e)
+        {
+            if (_originImage != null)
+            {
+                _currentImage = _originImage.Clone(); // 克隆原始图像
+                _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
+            }
+            else
+            {
+                MessageBox.Show("没有原始图像可重置", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
     }

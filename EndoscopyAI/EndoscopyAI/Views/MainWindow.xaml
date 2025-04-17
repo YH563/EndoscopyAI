@@ -59,6 +59,7 @@
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="我们的LOGO" FontSize="16" FontWeight="Bold" Foreground="White" />
                 <Button Content="打开" Width="80" Margin="20,0,5,0" FontSize="10" Click="LoadFile"/>
+                <Button Content="还原" Width="80" Margin="5" FontSize="10" Click="ImgReset"/>
                 <Button Content="保存" Width="80" Margin="5" FontSize="10" Click="SaveFile"/>
                 <Button Content="帮助" Width="80" Margin="5" FontSize="10"/>
             </StackPanel>

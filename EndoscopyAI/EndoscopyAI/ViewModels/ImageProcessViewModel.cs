@@ -20,6 +20,9 @@ namespace EndoscopyAI.ViewModels
 
         // 高光调整
         Mat AdjustHighlight(Mat input, double highlightFactor);
+
+        // 图像锐化
+        Mat SharpenImage(Mat input, double sharpenFactor);
     }
 
     public class ImageProcess : IImageProcess
@@ -95,7 +98,7 @@ namespace EndoscopyAI.ViewModels
         }
 
         // 单通道图像的各向异性扩散滤波
-        private Mat ApplyAnisotropicDiffusion(Mat input, int iterations, float kappa, float lambda = 0.25f)
+        private Mat ApplyAnisotropicDiffusion(Mat input, int iterations, float kappa, float lambda = 0.1f)
         {
             if (input == null || input.Empty())
                 throw new ArgumentNullException(nameof(input));
@@ -246,6 +249,65 @@ namespace EndoscopyAI.ViewModels
             // 转换回 BGR 色空间
             Mat output = new Mat();
             Cv2.CvtColor(adjustedHsv, output, ColorConversionCodes.HSV2BGR);
+
+            return output;
+        }
+
+        public Mat SharpenImage(Mat input, double sharpenFactor)
+        {
+            if (input == null || input.Empty())
+                throw new ArgumentNullException(nameof(input), "输入图像不能为空");
+
+            if (input.Channels() != 3)
+                throw new NotSupportedException("图像锐化仅支持三通道图像");
+
+            // 转换为灰度图以进行边缘检测
+            Mat gray = new Mat();
+            Cv2.CvtColor(input, gray, ColorConversionCodes.BGR2GRAY);
+
+            // 使用 Canny 边缘检测生成边缘掩码
+            Mat edges = new Mat();
+            Cv2.Canny(gray, edges, 80, 200); // 阈值可调，50 和 150 是常见值
+
+            // 扩展边缘区域（可选，增加锐化区域的宽度）
+            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(3, 3));
+            Cv2.Dilate(edges, edges, kernel);
+
+            // 转换为三通道掩码以匹配输入图像
+            Mat edgeMask = new Mat();
+            Cv2.CvtColor(edges, edgeMask, ColorConversionCodes.GRAY2BGR);
+
+            // 应用拉普拉斯算子进行锐化
+            Mat laplacian = new Mat();
+            Cv2.Laplacian(gray, laplacian, MatType.CV_16S, ksize: 3);
+
+            // 将拉普拉斯结果转换回 8 位
+            Mat laplacian8u = new Mat();
+            laplacian.ConvertTo(laplacian8u, MatType.CV_8U);
+
+            // 转换为三通道
+            Mat laplacianBgr = new Mat();
+            Cv2.CvtColor(laplacian8u, laplacianBgr, ColorConversionCodes.GRAY2BGR);
+
+            // 创建锐化图像：仅在边缘区域应用锐化
+            Mat sharpened = new Mat();
+            Cv2.AddWeighted(input, 1.0, laplacianBgr, sharpenFactor, 0.0, sharpened);
+
+            // 使用边缘掩码混合原图和锐化图像
+            Mat output = new Mat();
+            Cv2.BitwiseAnd(sharpened, edgeMask, output); // 边缘区域取锐化结果
+            Mat nonEdgeMask = new Mat();
+            Cv2.BitwiseNot(edgeMask, nonEdgeMask); // 非边缘区域掩码
+            Mat nonEdge = new Mat();
+            Cv2.BitwiseAnd(input, nonEdgeMask, nonEdge); // 非边缘区域取原图
+            Cv2.Add(output, nonEdge, output); // 合并边缘和非边缘区域
+
+            // 确保输出像素值在 0-255 范围内
+            Cv2.MinMaxLoc(output, out double minVal, out double maxVal);
+            if (minVal < 0 || maxVal > 255)
+            {
+                output = output.Normalize(0, 255, NormTypes.MinMax, (int)MatType.CV_8UC3);
+            }
 
             return output;
         }

@@ -160,7 +160,7 @@ namespace EndoscopyAI.Views
             {
                 // 图像去噪处理
                 var imageProcess = new ImageProcess();
-                _currentImage = imageProcess.AnisotropicDiffusion(_currentImage, iterations: 15, kappa: 30.0f); // 更新 _currentImage
+                _currentImage = imageProcess.AnisotropicDiffusion(_currentImage, iterations: 15, kappa: 10.0f); // 更新 _currentImage
 
                 // 显示去噪后的图像
                 _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
@@ -241,6 +241,27 @@ namespace EndoscopyAI.Views
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void ImgShapen(object sender, RoutedEventArgs e)
+        {
+            if (_currentImage == null)
+            {
+                MessageBox.Show("尚未导入图像！", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            try
+            {
+                // 图像锐化处理
+                var imageProcess = new ImageProcess();
+                _currentImage = imageProcess.SharpenImage(_currentImage, 1); // 更新 _currentImage
+                // 显示锐化后的图像
+                _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"图像锐化时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

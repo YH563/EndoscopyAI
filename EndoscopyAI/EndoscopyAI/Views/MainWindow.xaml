@@ -100,6 +100,14 @@
                             </StackPanel>
                         </Button.Content>
                     </Button>
+                    <Button Height="50" Click="ClassPredict">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesignIcons:PackIcon Kind="Spa" Margin="0,5,5,0" />
+                                <TextBlock Text="分类预测" />
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
                 </StackPanel>
             </materialDesign:Card>
 
@@ -121,7 +129,8 @@
                     </StackPanel>
                     <StackPanel Grid.Row="1">
                         <TextBlock Text="诊断结果" FontSize="16" FontWeight="Bold" />
-                        <TextBlock Text="诊断结果" FontSize="12" TextWrapping="Wrap" />
+                        <TextBlock Name="ClassifyResult" Text="预测分类：" FontSize="12" TextWrapping="Wrap" />
+                        <TextBlock Name="ClassifyConfidence" Text="分类置信度：" FontSize="12" TextWrapping="Wrap" />
                     </StackPanel>
                 </Grid>
             </materialDesign:Card>

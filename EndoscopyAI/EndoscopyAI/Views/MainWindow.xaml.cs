@@ -11,6 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using EndoscopyAI.ViewModels;
+using OnnxImageClassifierWPF;
 
 namespace EndoscopyAI.Views
 {
@@ -19,9 +20,18 @@ namespace EndoscopyAI.Views
     /// </summary>
     public partial class MainWindow : System.Windows.Window
     {
+        private string imagePath; // 用于存储图像路径
         private readonly IImageDisplay _imageDisplay; // 用于加载和保存图像的实例
         private Mat _currentImage; // 用于存储当前加载的图像
         private Mat _originImage; // 用于存储原始图像
+        private OnnxClassifier classifier = new OnnxClassifier(
+            System.IO.Path.Combine(
+                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
+                "PredModels",
+                "ClassifyModel.onnx"
+            )
+        );
+        private string[] labels = { "Barrett", "Cancer", "Inflammation", "Normal" };
 
         public MainWindow()
         {
@@ -41,6 +51,7 @@ namespace EndoscopyAI.Views
             {
                 try
                 {
+                    imagePath = openFileDialog.FileName;
                     _currentImage = _imageDisplay.LoadImageFromFile(openFileDialog.FileName);// 加载图像并存储到 _currentImage
                     _originImage = _currentImage.Clone(); // 克隆原始图像
 
@@ -167,6 +178,18 @@ namespace EndoscopyAI.Views
             {
                 MessageBox.Show("没有原始图像可重置", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private void ClassPredict(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(imagePath))
+            {
+                MessageBox.Show("请先上传一张图片。");
+                return;
+            }
+            var (predictedClass, confidence) = classifier.Predict(imagePath);
+            ClassifyResult.Text = $"预测分类：{labels[predictedClass]}";
+            ClassifyConfidence.Text = $"分类置信度：{confidence:F2}%";
         }
     }
 }

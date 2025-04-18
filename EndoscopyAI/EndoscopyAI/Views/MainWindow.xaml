@@ -112,16 +112,11 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="6.5*" />
-                        <RowDefinition Height="3.5*" />
                     </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0">
-                        <TextBlock Text="患者信息" FontSize="16" FontWeight="Bold" />
-                        <TextBlock Text="患者信息患者信息" FontSize="12" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <StackPanel Grid.Row="1">
-                        <TextBlock Text="诊断结果" FontSize="16" FontWeight="Bold" />
-                        <TextBlock Text="诊断结果" FontSize="12" TextWrapping="Wrap" />
-                    </StackPanel>
+                    <Grid Grid.Row="0">
+                        <local:PatientInformationControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Grid>
+
                 </Grid>
             </materialDesign:Card>
         </Grid>

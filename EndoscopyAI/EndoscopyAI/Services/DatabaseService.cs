@@ -1,22 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Drawing.Text;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EndoscopyAI.Services
 {
     // 用于保存病人信息
     public class Patient
     {
-        public int PatientId { get; set; } // 主键
-        public required string Name { get; set; }    // 姓名
-        public int Age { get; set; }        // 年龄
-        public required string Gender { get; set; }  // 性别
-        public required string Contact { get; set; } // 联系方式
-        public required string IDNumber { get; set; }// 身份证号/医保号
+        [Key]
+        public string? NumberID { get; set; }        // 身份证号/医保号
+        public string? Name { get; set; }            // 姓名
+        public int? Age { get; set; }                // 年龄
+        public string? Gender { get; set; }          // 性别
+        public string? Contact { get; set; }         // 联系方式
+        public string? DiagnosisResult { get; set; } // 诊断结果
+        public double? ConfidenceLevel { get; set; } // 置信度
+
+        // 默认构造函数
+        public Patient()
+        {
+            this.Name = "Unkown";
+            this.Age = 0;
+            this.Gender = "Unkown";
+            this.Contact = "Unkown";
+            this.NumberID = "Unkown";
+            this.DiagnosisResult = "Unkown";
+            this.ConfidenceLevel = 0.0;
+        }
     }
 
     // 数据库上下文，用于建立映射关系
@@ -39,29 +58,58 @@ namespace EndoscopyAI.Services
         // 构造函数
         public PatientDbService(PatientDbContext db)
         {
-            _db = new PatientDbContext();
+            _db = db;
             _db.Database.EnsureCreated();  // 自动创建数据库和表
         }
 
         // 添加病人
         public void AddPatient(Patient patient)
         {
-            _db.Patients.Add(patient);
-            _db.SaveChanges();
+            try
+            {
+                _db.Patients.Add(patient);
+                _db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        // 根据身份证号或者医保号查找病人信息
+        public Patient? FindPatientByIdNumber(Patient patient)
+        {
+            var existing = _db.Patients.Find(patient.NumberID);
+            if (existing != null)
+                return existing;
+            else return null;
         }
 
         // 修改病人信息
         public void UpdatePatient(Patient updatedPatient)
         {
-            var existing = _db.Patients.Find(updatedPatient.PatientId);
-            if (existing != null)
+            try
             {
-                existing.Name = updatedPatient.Name;
-                existing.Age = updatedPatient.Age;
-                existing.Gender = updatedPatient.Gender;
-                existing.Contact = updatedPatient.Contact;
-                existing.IDNumber = updatedPatient.IDNumber;
-                _db.SaveChanges();
+                var existing = FindPatientByIdNumber(updatedPatient);
+                if (existing != null)
+                {
+                    existing.Name = updatedPatient.Name;
+                    existing.Age = updatedPatient.Age;
+                    existing.Gender = updatedPatient.Gender;
+                    existing.Contact = updatedPatient.Contact;
+                    existing.NumberID = updatedPatient.NumberID;
+                    _db.SaveChanges();
+                }
+                else
+                {
+                    AddPatient(updatedPatient);
+                }
+            }
+            catch (DbUpdateException ex)
+            {
+                // 捕获数据库更新异常
+                Console.WriteLine($"数据库更新失败: {ex.InnerException?.Message}");
+                throw;
             }
         }
 
@@ -76,22 +124,19 @@ namespace EndoscopyAI.Services
             }
         }
 
-        // 查找所有病人
-        public List<Patient> GetAllPatients()
+    }
+
+    // 创建全局可访问的数据库服务实例
+    public static class GlobalDbService
+    {
+        private static readonly PatientDbContext _dbContext;
+
+        static GlobalDbService()
         {
-            return _db.Patients.ToList();
+            _dbContext = new PatientDbContext();
+            _dbContext.Database.EnsureCreated();
         }
 
-        // 根据姓名查找
-        public List<Patient> SearchByName(string name)
-        {
-            return _db.Patients.Where(p => p.Name.Contains(name)).ToList();
-        }
-
-        // 根据身份证号查找
-        public Patient GetByIdNumber(string idNumber)
-        {
-            return _db.Patients.FirstOrDefault(p => p.IDNumber == idNumber);
-        }
+        public static PatientDbService DbService => new PatientDbService(_dbContext);
     }
 }

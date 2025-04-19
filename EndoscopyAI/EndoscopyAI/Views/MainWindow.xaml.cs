@@ -13,6 +13,8 @@ using System.Windows.Shapes;
 using EndoscopyAI.ViewModels;
 using OnnxImageClassifierWPF;
 using System.ComponentModel;
+using System.Drawing;
+using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace EndoscopyAI.Views
 {
@@ -37,6 +39,16 @@ namespace EndoscopyAI.Views
                 "ClassifyModel.onnx"
             )
         );
+        // 用于存储分割器
+        private OnnxSegmenter segmenter = new OnnxSegmenter(
+            System.IO.Path.Combine(
+                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
+                "PredModels",
+                "SegmentModel.onnx"
+            )
+        );
+        // 用于存储分割结果的叠加图像
+        private BitmapSource segmentationOverlay;
         // 用于存储分类标签
         private string[] labels = { "Barrett", "Cancer", "Inflammation", "Normal" };
         // 用于存储滑动条的可见性状态
@@ -196,6 +208,139 @@ namespace EndoscopyAI.Views
             var (predictedClass, confidence) = classifier.Predict(imagePath);
             ClassifyResult.Text = $"预测分类：{labels[predictedClass]}";
             ClassifyConfidence.Text = $"分类置信度：{confidence:F2}%";
+            // ----------------------TODO-----------------------
+            // predictedClass 预测的类别
+            // confidence 置信度
+        }
+
+        // 图像分割
+        private void SegmentPredict(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(imagePath))
+            {
+                MessageBox.Show("请先上传一张图片。");
+                return;
+            }
+
+            try
+            {
+                // 执行分割预测
+                var result = segmenter.Predict(imagePath);
+
+                // 创建透明叠加层
+                var overlay = CreateTransparentOverlay(result.OutputTensor);
+
+                // 转换为BitmapSource
+                segmentationOverlay = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                    overlay.GetHbitmap(),
+                    IntPtr.Zero,
+                    Int32Rect.Empty,
+                    BitmapSizeOptions.FromWidthAndHeight(512, 512));
+
+                // 直接修改原始图像的Source，添加叠加效果
+                var original = new Bitmap(imagePath);
+                var originalSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                    original.GetHbitmap(),
+                    IntPtr.Zero,
+                    Int32Rect.Empty,
+                    BitmapSizeOptions.FromWidthAndHeight(original.Width, original.Height));
+
+                // 使用DrawingVisual组合图像
+                var visual = new DrawingVisual();
+                using (var context = visual.RenderOpen())
+                {
+                    context.DrawImage(originalSource, new System.Windows.Rect(0, 0, original.Width, original.Height));
+                    context.DrawImage(segmentationOverlay, new System.Windows.Rect(0, 0, 512, 512));
+                }
+
+                var combined = new RenderTargetBitmap(
+                    original.Width, original.Height, 96, 96, PixelFormats.Pbgra32);
+                combined.Render(visual);
+
+                ImageDisplay.Source = combined;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"分割预测失败: {ex.Message}");
+            }
+        }
+        // ------------------------TODO-----------------------
+        // segmentationOverlay 分割叠加图像
+
+
+        // Softmax函数
+        private float[] Softmax(float[] logits)
+        {
+            float[] probs = new float[logits.Length];
+            float maxLogit = float.MinValue;
+            for (int i = 0; i < logits.Length; i++)
+            {
+                if (logits[i] > maxLogit) maxLogit = logits[i];
+            }
+
+            float sum = 0;
+            for (int i = 0; i < logits.Length; i++)
+            {
+                probs[i] = (float)Math.Exp(logits[i] - maxLogit); // 防止溢出
+                sum += probs[i];
+            }
+
+            for (int i = 0; i < probs.Length; i++)
+            {
+                probs[i] /= sum;
+            }
+
+            return probs;
+        }
+
+        // 创建透明叠加层
+        private Bitmap CreateTransparentOverlay(Tensor<float> output)
+        {
+            var overlay = new Bitmap(512, 512);
+
+            for (int y = 0; y < 512; y++)
+            {
+                for (int x = 0; x < 512; x++)
+                {
+                    // 获取所有类别的logits
+                    float[] logits = new float[4];
+                    for (int c = 0; c < 4; c++)
+                    {
+                        logits[c] = output[0, c, y, x];
+                    }
+
+                    // 应用softmax
+                    float[] probs = Softmax(logits);
+
+                    // 获取最大概率和对应类别
+                    int predictedClass = 0;
+                    float maxProb = probs[0];
+                    for (int c = 1; c < 4; c++)
+                    {
+                        if (probs[c] > maxProb)
+                        {
+                            maxProb = probs[c];
+                            predictedClass = c;
+                        }
+                    }
+
+                    // 将最大概率映射为灰度值（0到255）
+                    int grayValue = (int)(maxProb * 255);
+
+                    // 颜色映射：灰度值决定RGB，透明度保持不变
+                    System.Drawing.Color color = predictedClass switch
+                    {
+                        1 => System.Drawing.Color.FromArgb(255, grayValue, grayValue, grayValue), // 红色类别，灰度
+                        2 => System.Drawing.Color.FromArgb(255, grayValue, grayValue, grayValue), // 绿色类别，灰度
+                        3 => System.Drawing.Color.FromArgb(255, grayValue, grayValue, grayValue), // 蓝色类别，灰度
+                        _ => System.Drawing.Color.Transparent                             // 背景透明
+                    };
+
+                    overlay.SetPixel(x, y, color);
+                }
+            }
+
+            return overlay;
         }
 
         // 照度调节（调整滑动条状态）

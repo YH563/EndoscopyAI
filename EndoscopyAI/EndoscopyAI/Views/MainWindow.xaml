@@ -163,6 +163,14 @@
                             </StackPanel>
                         </Button.Content>
                     </Button>
+                    <Button Height="50" Click="SegmentPredict">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesignIcons:PackIcon Kind="Grid" Margin="0,5,5,0" />
+                                <TextBlock Text="分割预测" />
+                            </StackPanel>
+                        </Button.Content>
+                    </Button>
                 </StackPanel>
             </materialDesign:Card>
 

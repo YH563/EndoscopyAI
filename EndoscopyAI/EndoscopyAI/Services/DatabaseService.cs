@@ -23,18 +23,22 @@ namespace EndoscopyAI.Services
         public string? Gender { get; set; }          // 性别
         public string? Contact { get; set; }         // 联系方式
         public string? DiagnosisResult { get; set; } // 诊断结果
-        public double? ConfidenceLevel { get; set; } // 置信度
+        public float? ConfidenceLevel { get; set; } // 置信度
+        public string? ImagePath { get; set; }       // 图片路径
+        //public string? HeatMapPath { get; set; }     // 热力图路径
 
         // 默认构造函数
         public Patient()
         {
-            this.Name = "Unkown";
+            this.Name = "";
             this.Age = 0;
-            this.Gender = "Unkown";
-            this.Contact = "Unkown";
-            this.NumberID = "Unkown";
-            this.DiagnosisResult = "Unkown";
-            this.ConfidenceLevel = 0.0;
+            this.Gender = "";
+            this.Contact = "";
+            this.NumberID = "";
+            this.DiagnosisResult = "";
+            this.ConfidenceLevel = 0f;
+            this.ImagePath = "";
+            //this.HeatMapPath = "";
         }
     }
 
@@ -98,6 +102,10 @@ namespace EndoscopyAI.Services
                     existing.Gender = updatedPatient.Gender;
                     existing.Contact = updatedPatient.Contact;
                     existing.NumberID = updatedPatient.NumberID;
+                    existing.DiagnosisResult = updatedPatient.DiagnosisResult;
+                    existing.ConfidenceLevel = updatedPatient.ConfidenceLevel;
+                    existing.ImagePath = updatedPatient.ImagePath;
+                    //existing.HeatMapPath = updatedPatient.HeatMapPath;
                     _db.SaveChanges();
                 }
                 else

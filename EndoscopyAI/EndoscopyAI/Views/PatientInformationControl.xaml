@@ -4,8 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EndoscopyAI.Views"
+             xmlns:custom="clr-namespace:EndoscopyAI.Services"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="400">
+             d:DesignHeight="600" d:DesignWidth="400">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -140,7 +141,7 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <Label Content="年龄" FontSize="14" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="intAge"/>
+                        <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="intAge" />
                     </Grid>
                 </Grid>
                 <Grid Grid.Column="1">
@@ -179,7 +180,7 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <Label Content="联系方式" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="stringContact"/>
+                <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="stringContact" />
             </Grid>
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
@@ -187,31 +188,19 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <Label Content="身份证号/医保号" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="stringNumberID"/>
+                <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="stringNumberID"  />
             </Grid>
         </Grid>
         <Grid Grid.Row="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Height="1" Background="Black" VerticalAlignment="Top" Margin="5,5,5,5"/>
             <TextBlock Grid.Row="0" Text="智能诊断" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Margin="8"/>
             <Grid Grid.Row="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Label Content="推理进度" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                    <ProgressBar Grid.Column="1" x:Name="progressBar" Minimum="0" Maximum="100"  Height="15" Margin="10"/>
-                    <Label Content="{Binding Value, ElementName=progressBar, StringFormat={}{0:0}%}" Grid.Column="2" FontSize="14" FontWeight="Bold"/>
-                </Grid>
-                <Grid Grid.Row="1">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -222,7 +211,9 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <Label Grid.Row="0" Content="诊断结果" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="stringDiagnosisResult" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="stringDiagnosisResult" 
+                                   Text="{Binding Source={x:Static custom:DataSharingService.Instance}, Path=DiagnosisResult}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
                     </Grid>
                     <Grid Grid.Column="1">
                         <Grid.ColumnDefinitions>
@@ -230,16 +221,20 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <Label Grid.Row="0" Content="置信度" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="doubleConfidenceLevel" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="doubleConfidenceLevel" 
+                                  Text="{Binding Source={x:Static custom:DataSharingService.Instance}, Path=ConfidenceDisplay}"  
+                                  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
                     </Grid>
-                    
                 </Grid>
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                </Grid>
+            </Grid>
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="病灶分割" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Margin="8"/>
+                <Image Grid.Row="1" Source="{Binding Source={x:Static custom:DataSharingService.Instance}, Path=SegmentationImage}" 
+                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
             </Grid>
         </Grid>
         <Button Grid.Row="3" Content="提交" HorizontalAlignment="Center" VerticalAlignment="Top" Width="100" Height="36" Click="Confirm_Click"/>

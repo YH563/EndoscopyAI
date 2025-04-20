@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,9 @@ namespace EndoscopyAI.Views
     /// </summary>
     public partial class PatientInformationControl : UserControl
     {
+        Patient patient = new Patient();  // 病人信息实例
+        IPatientInformation patientInformation = new PatientInformation();  // 病人信息接口实例
+
         public PatientInformationControl()
         {
             InitializeComponent();
@@ -31,35 +35,25 @@ namespace EndoscopyAI.Views
         // 保存病人信息
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
-            string name = stringName.Text;
-            int age = string.IsNullOrEmpty(intAge.Text) ? 0 : int.Parse(intAge.Text);
-            string gender = "Unkown";
+            patient.Name = stringName.Text;
+            patient.Age = string.IsNullOrEmpty(intAge.Text) ? 0 : int.Parse(intAge.Text);
             if (option1.IsChecked == true)
             {
-                gender = option1.Content?.ToString() ?? "Unkown";
+                patient.Gender = option1.Content?.ToString() ?? "";
             }
             else if (option2.IsChecked == true)
             {
-                gender = option2.Content?.ToString() ?? "Unkown";
+                patient.Gender = option2.Content?.ToString() ?? "";
             }
-            string contact = stringContact.Text;
-            string numberID = stringNumberID.Text;
-            string diagnosisResult = stringDiagnosisResult.Text;
-            double confidenctLevel = string.IsNullOrEmpty(doubleConfidenceLevel.Text) ? 0 : double.Parse(doubleConfidenceLevel.Text);
+            patient.Contact = stringContact.Text;
+            patient.NumberID = stringNumberID.Text;
+            patient.DiagnosisResult = DataSharingService.Instance.DiagnosisResult;
+            patient.ConfidenceLevel = DataSharingService.Instance.Confidence;
+            patient.ImagePath = DataSharingService.Instance.ImagePath;
+            //patient.HeatMapPath = DataSharingService.Instance.HeatMapPath;
 
-            Patient patient = new Patient
-            {
-                Name = name,
-                Age = age,
-                Gender = gender,
-                Contact = contact,
-                NumberID = numberID,
-                DiagnosisResult = diagnosisResult,
-                ConfidenceLevel = confidenctLevel
-            };
-
-            PatientInformation patientInformation = new PatientInformation();
             patientInformation.UpdatePatient(patient);
         }
+
     }
 }

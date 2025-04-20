@@ -187,8 +187,7 @@
                         <RowDefinition Height="3.5*" />
                     </Grid.RowDefinitions>
                     <StackPanel Grid.Row="0">
-                        <TextBlock Text="患者信息" FontSize="18" FontWeight="Bold" />
-                        <TextBlock Text="患者信息患者信息" FontSize="15" TextWrapping="Wrap" />
+                        <Image x:Name="MaskDisplay" Stretch="Uniform" />
                     </StackPanel>
                     <StackPanel Grid.Row="1">
                         <TextBlock Text="诊断结果" FontSize="18" FontWeight="Bold" />

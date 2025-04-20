@@ -208,9 +208,6 @@ namespace EndoscopyAI.Views
             var (predictedClass, confidence) = classifier.Predict(imagePath);
             ClassifyResult.Text = $"预测分类：{labels[predictedClass]}";
             ClassifyConfidence.Text = $"分类置信度：{confidence:F2}%";
-            // ----------------------TODO-----------------------
-            // predictedClass 预测的类别
-            // confidence 置信度
         }
 
         // 图像分割
@@ -258,14 +255,34 @@ namespace EndoscopyAI.Views
                 combined.Render(visual);
 
                 ImageDisplay.Source = combined;
+
+                // 创建黑白掩码图
+                var maskBitmap = new Bitmap(512, 512);
+                for (int y = 0; y < 512; y++)
+                {
+                    for (int x = 0; x < 512; x++)
+                    {
+                        var pixel = overlay.GetPixel(x, y);
+                        // 如果原像素是透明的（正常区域），设置为黑色；否则设置为白色
+                        maskBitmap.SetPixel(x, y, pixel.A == 0 ? System.Drawing.Color.Black : System.Drawing.Color.White);
+                    }
+                }
+
+                // 转换为BitmapSource
+                var maskSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                    maskBitmap.GetHbitmap(),
+                    IntPtr.Zero,
+                    Int32Rect.Empty,
+                    BitmapSizeOptions.FromWidthAndHeight(512, 512));
+
+                // 展示掩码图像
+                MaskDisplay.Source = maskSource;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"分割预测失败: {ex.Message}");
             }
         }
-        // ------------------------TODO-----------------------
-        // segmentationOverlay 分割叠加图像
 
 
         // Softmax函数

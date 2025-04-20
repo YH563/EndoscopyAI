@@ -111,7 +111,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- 左侧功能按钮 -->
-            <materialDesign:Card Grid.Column="0" Margin="10" Padding="5">
+            <materialDesign:Card Grid.Column="0" Margin="10, 22" Padding="5">
                 <StackPanel x:Name="ButtonPanel" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
                     <Button Height="50" Click="ImgEnhance">
                         <Button.Content>

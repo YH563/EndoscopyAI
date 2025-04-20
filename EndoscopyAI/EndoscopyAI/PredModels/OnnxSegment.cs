@@ -84,20 +84,39 @@ namespace OnnxImageClassifierWPF
 
         private DenseTensor<float> PreprocessImage(string path)
         {
-            Bitmap bmp = new Bitmap(path);
-            Bitmap resized = new Bitmap(bmp, new Size(512, 512));
+            // 1. 加载图像并转换为RGB格式（与PIL.Image.open().convert("RGB")一致）
+            using var bmp = new Bitmap(path);
+            var resized = new Bitmap(512, 512, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
 
+            // 2. 高质量缩放（匹配torchvision.transforms.Resize）
+            using (var g = Graphics.FromImage(resized))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.Bilinear;
+                g.DrawImage(bmp, 0, 0, 512, 512);
+            }
+
+            // 3. 转换为Tensor并进行ImageNet标准化（与torchvision.transforms.Normalize一致）
             var tensor = new DenseTensor<float>(new[] { 1, 3, 512, 512 });
+
+            // ImageNet标准化参数
+            float[] mean = { 0.485f, 0.456f, 0.406f };
+            float[] std = { 0.229f, 0.224f, 0.225f };
+
+            // 通道顺序需与Python一致（RGB）
             for (int y = 0; y < 512; y++)
             {
                 for (int x = 0; x < 512; x++)
                 {
-                    Color color = resized.GetPixel(x, y);
-                    tensor[0, 0, y, x] = color.R / 255.0f;
-                    tensor[0, 1, y, x] = color.G / 255.0f;
-                    tensor[0, 2, y, x] = color.B / 255.0f;
+                    Color pixel = resized.GetPixel(x, y);
+
+                    // 归一化到[0,1]后应用标准化：(x - mean) / std
+                    tensor[0, 0, y, x] = (pixel.R / 255f - mean[0]) / std[0]; // R通道
+                    tensor[0, 1, y, x] = (pixel.G / 255f - mean[1]) / std[1]; // G通道
+                    tensor[0, 2, y, x] = (pixel.B / 255f - mean[2]) / std[2]; // B通道
                 }
             }
+
+            resized.Dispose();
             return tensor;
         }
     }

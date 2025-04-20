@@ -302,6 +302,11 @@ namespace EndoscopyAI.Views
             {
                 for (int x = 0; x < 512; x++)
                 {
+                    if (x == 78 && y == 325)
+                    { // 仅用于调试
+                        int abcde = 0;
+                    }
+
                     // 获取所有类别的logits
                     float[] logits = new float[4];
                     for (int c = 0; c < 4; c++)
@@ -324,15 +329,16 @@ namespace EndoscopyAI.Views
                         }
                     }
 
-                    // 将最大概率映射为灰度值（0到255）
+                    //// 将最大概率映射为灰度值（0到255）
                     int grayValue = (int)(maxProb * 255);
+                    //int grayValue = 255;
 
                     // 颜色映射：灰度值决定RGB，透明度保持不变
                     System.Drawing.Color color = predictedClass switch
                     {
-                        1 => System.Drawing.Color.FromArgb(255, grayValue, grayValue, grayValue), // 红色类别，灰度
-                        2 => System.Drawing.Color.FromArgb(255, grayValue, grayValue, grayValue), // 绿色类别，灰度
-                        3 => System.Drawing.Color.FromArgb(255, grayValue, grayValue, grayValue), // 蓝色类别，灰度
+                        1 => System.Drawing.Color.FromArgb(128, grayValue, 0, 0), // 红色类别，灰度
+                        2 => System.Drawing.Color.FromArgb(128, 0, grayValue, 0), // 绿色类别，灰度
+                        3 => System.Drawing.Color.FromArgb(128, 0, 0, grayValue), // 蓝色类别，灰度
                         _ => System.Drawing.Color.Transparent                             // 背景透明
                     };
 

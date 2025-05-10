@@ -1,9 +1,11 @@
 ﻿using OpenCvSharp;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace EndoscopyAI.ViewModels
 {
@@ -23,6 +25,12 @@ namespace EndoscopyAI.ViewModels
 
         // 图像锐化
         Mat SharpenImage(Mat input, double sharpenFactor);
+
+        // Softmax函数
+        float[] Softmax(float[] logits);
+
+        // 创建透明叠加层
+        Bitmap CreateTransparentOverlay(Tensor<float> output);
     }
 
     public class ImageProcess : IImageProcess
@@ -270,7 +278,7 @@ namespace EndoscopyAI.ViewModels
             Cv2.Canny(gray, edges, 80, 200); // 阈值可调，50 和 150 是常见值
 
             // 扩展边缘区域（可选，增加锐化区域的宽度）
-            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new Size(3, 3));
+            Mat kernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
             Cv2.Dilate(edges, edges, kernel);
 
             // 转换为三通道掩码以匹配输入图像
@@ -310,6 +318,81 @@ namespace EndoscopyAI.ViewModels
             }
 
             return output;
+        }
+
+        public float[] Softmax(float[] logits)
+        {
+            float[] probs = new float[logits.Length];
+            float maxLogit = float.MinValue;
+            for (int i = 0; i < logits.Length; i++)
+            {
+                if (logits[i] > maxLogit) maxLogit = logits[i];
+            }
+
+            float sum = 0;
+            for (int i = 0; i < logits.Length; i++)
+            {
+                probs[i] = (float)Math.Exp(logits[i] - maxLogit); // 防止溢出
+                sum += probs[i];
+            }
+
+            for (int i = 0; i < probs.Length; i++)
+            {
+                probs[i] /= sum;
+            }
+
+            return probs;
+        }
+
+        // 创建透明叠加层
+        public Bitmap CreateTransparentOverlay(Tensor<float> output)
+        {
+            var overlay = new Bitmap(512, 512);
+            var imageProcess = new ImageProcess();
+
+            for (int y = 0; y < 512; y++)
+            {
+                for (int x = 0; x < 512; x++)
+                {
+                    // 获取所有类别的logits
+                    float[] logits = new float[4];
+                    for (int c = 0; c < 4; c++)
+                    {
+                        logits[c] = output[0, c, y, x];
+                    }
+
+                    // 应用softmax
+                    float[] probs = imageProcess.Softmax(logits);
+
+                    // 获取最大概率和对应类别
+                    int predictedClass = 0;
+                    float maxProb = probs[0];
+                    for (int c = 1; c < 4; c++)
+                    {
+                        if (probs[c] > maxProb)
+                        {
+                            maxProb = probs[c];
+                            predictedClass = c;
+                        }
+                    }
+
+                    // 将最大概率映射为灰度值（0到255）
+                    int grayValue = (int)(maxProb * 255);
+
+                    // 颜色映射：灰度值决定RGB，透明度保持不变
+                    System.Drawing.Color color = predictedClass switch
+                    {
+                        1 => System.Drawing.Color.FromArgb(128, grayValue, 0, 0), // 红色类别，灰度
+                        2 => System.Drawing.Color.FromArgb(128, 0, grayValue, 0), // 绿色类别，灰度
+                        3 => System.Drawing.Color.FromArgb(128, 0, 0, grayValue), // 蓝色类别，灰度
+                        _ => System.Drawing.Color.Transparent                             // 背景透明
+                    };
+
+                    overlay.SetPixel(x, y, color);
+                }
+            }
+
+            return overlay;
         }
     }
 }

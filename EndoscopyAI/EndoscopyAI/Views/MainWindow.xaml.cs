@@ -225,8 +225,10 @@ namespace EndoscopyAI.Views
                 // 执行分割预测
                 var result = segmenter.Predict(imagePath);
 
+                var imageProcess = new ImageProcess();
+
                 // 创建透明叠加层
-                var overlay = CreateTransparentOverlay(result.OutputTensor);
+                var overlay = imageProcess.CreateTransparentOverlay(result.OutputTensor);
 
                 // 转换为BitmapSource
                 segmentationOverlay = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
@@ -285,86 +287,9 @@ namespace EndoscopyAI.Views
             }
         }
 
-
-        // Softmax函数
-        private float[] Softmax(float[] logits)
-        {
-            float[] probs = new float[logits.Length];
-            float maxLogit = float.MinValue;
-            for (int i = 0; i < logits.Length; i++)
-            {
-                if (logits[i] > maxLogit) maxLogit = logits[i];
-            }
-
-            float sum = 0;
-            for (int i = 0; i < logits.Length; i++)
-            {
-                probs[i] = (float)Math.Exp(logits[i] - maxLogit); // 防止溢出
-                sum += probs[i];
-            }
-
-            for (int i = 0; i < probs.Length; i++)
-            {
-                probs[i] /= sum;
-            }
-
-            return probs;
-        }
-
-        // 创建透明叠加层
-        private Bitmap CreateTransparentOverlay(Tensor<float> output)
-        {
-            var overlay = new Bitmap(512, 512);
-
-            for (int y = 0; y < 512; y++)
-            {
-                for (int x = 0; x < 512; x++)
-                {
-                    // 获取所有类别的logits
-                    float[] logits = new float[4];
-                    for (int c = 0; c < 4; c++)
-                    {
-                        logits[c] = output[0, c, y, x];
-                    }
-
-                    // 应用softmax
-                    float[] probs = Softmax(logits);
-
-                    // 获取最大概率和对应类别
-                    int predictedClass = 0;
-                    float maxProb = probs[0];
-                    for (int c = 1; c < 4; c++)
-                    {
-                        if (probs[c] > maxProb)
-                        {
-                            maxProb = probs[c];
-                            predictedClass = c;
-                        }
-                    }
-
-                    // 将最大概率映射为灰度值（0到255）
-                    int grayValue = (int)(maxProb * 255);
-
-                    // 颜色映射：灰度值决定RGB，透明度保持不变
-                    System.Drawing.Color color = predictedClass switch
-                    {
-                        1 => System.Drawing.Color.FromArgb(128, grayValue, 0, 0), // 红色类别，灰度
-                        2 => System.Drawing.Color.FromArgb(128, 0, grayValue, 0), // 绿色类别，灰度
-                        3 => System.Drawing.Color.FromArgb(128, 0, 0, grayValue), // 蓝色类别，灰度
-                        _ => System.Drawing.Color.Transparent                             // 背景透明
-                    };
-
-                    overlay.SetPixel(x, y, color);
-                }
-            }
-
-            return overlay;
-        }
-
-        // 照度调节（调整滑动条状态）
+        // 调整滑动条状态
         private void LightAugest(object sender, RoutedEventArgs e)
         {
-            // 切换滑动条显示状态
             IsSliderVisible = !IsSliderVisible;
         }
 
@@ -417,7 +342,7 @@ namespace EndoscopyAI.Views
             {
                 // 图像锐化处理
                 var imageProcess = new ImageProcess();
-                _currentImage = imageProcess.SharpenImage(_currentImage, 1); // 更新 _currentImage
+                _currentImage = imageProcess.SharpenImage(_currentImage, 1);
                 // 显示锐化后的图像
                 _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
             }

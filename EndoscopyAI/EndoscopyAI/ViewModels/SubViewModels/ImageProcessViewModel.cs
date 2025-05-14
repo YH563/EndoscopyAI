@@ -37,41 +37,191 @@ namespace EndoscopyAI.ViewModels.SubViewModels
     {
         // 实现多通道直方图均衡化
         public Mat HistogramEqualization(Mat input)
-        {
-            if (input == null || input.Empty())
-                throw new ArgumentNullException(nameof(input), "输入图像不能为空");
+{
+    if (input == null || input.Empty())
+        throw new ArgumentNullException(nameof(input), "输入图像不能为空");
 
-            // 检查图像是否为单通道或多通道
-            if (input.Channels() == 1)
-            {
-                // 单通道图像，直接均衡化
-                Mat output = new Mat();
-                Cv2.EqualizeHist(input, output);
-                return output;
-            }
-            else if (input.Channels() == 3)
-            {
-                // 多通道图像（如 RGB）
-                Mat[] channels = Cv2.Split(input); // 分离通道
-                Mat[] equalizedChannels = new Mat[3];
+    // 确保输入图像是RGB格式（如果是BGR格式则转换）
+    Mat rgbImage = new Mat();
+    if (input.Channels() == 3)
+    {
+        Cv2.CvtColor(input, rgbImage, ColorConversionCodes.BGR2RGB);
+    }
+    else
+    {
+        rgbImage = input.Clone();
+    }
 
-                // 对每个通道进行直方图均衡化
-                for (int i = 0; i < channels.Length; i++)
-                {
-                    equalizedChannels[i] = new Mat();
-                    Cv2.EqualizeHist(channels[i], equalizedChannels[i]);
-                }
+    // 转换为浮点数
+    Mat floatImage = new Mat();
+    rgbImage.ConvertTo(floatImage, MatType.CV_64FC3);
+    
+    // 默认参数
+    double[] sigmaList = new double[] { 15, 80, 250 };
+    double G = 5.0;
+    double b = 25.0;
+    double alpha = 125.0;
+    double beta = 46.0;
+    
+    // 应用MSR-CR处理
+    Mat result = MSRCR(floatImage, sigmaList, G, b, alpha, beta);
+    
+    // 如果原输入是BGR格式，将结果转回BGR
+    if (input.Channels() == 3)
+    {
+        Cv2.CvtColor(result, result, ColorConversionCodes.RGB2BGR);
+    }
+    
+    return result;
+}
 
-                // 合并均衡化后的通道
-                Mat output = new Mat();
-                Cv2.Merge(equalizedChannels, output);
-                return output;
-            }
-            else
-            {
-                throw new NotSupportedException("仅支持单通道或三通道图像的直方图均衡化");
-            }
-        }
+private Mat MSRCR(Mat image, double[] sigmaList, double G, double b, double alpha, double beta)
+{
+    // 在计算前添加1.0防止对数计算出错（与Python保持一致）
+    Mat img = new Mat();
+    image.ConvertTo(img, MatType.CV_64FC3);
+    Cv2.Add(img, new Scalar(1.0, 1.0, 1.0), img);
+    
+    // 应用多尺度Retinex
+    Mat msr = MultiScaleRetinex(img, sigmaList);
+    
+    // 颜色恢复（如果是彩色图像）
+    if (image.Channels() == 3)
+    {
+        Mat cr = ColorRestoration(img, alpha, beta);
+        
+        // 乘法: msr_cr = msr * cr
+        Mat msrCr = new Mat();
+        Cv2.Multiply(msr, cr, msrCr);
+        
+        // 应用增益和偏移: msr_cr = G * (msr_cr + b)
+        Cv2.Add(msrCr, new Scalar(b, b, b), msrCr);
+        Cv2.Multiply(msrCr, new Scalar(G, G, G), msrCr);
+        
+        // 裁剪到0-255范围
+        Mat result = new Mat();
+        Cv2.Threshold(msrCr, msrCr, 0, 0, ThresholdTypes.Tozero);
+        Cv2.Threshold(msrCr, msrCr, 255, 255, ThresholdTypes.Trunc);
+        msrCr.ConvertTo(result, MatType.CV_8UC3);
+        
+        return result;
+    }
+    else
+    {
+        // 对于灰度图像
+        Cv2.Add(msr, new Scalar(b), msr);
+        Cv2.Multiply(msr, new Scalar(G), msr);
+        
+        // 裁剪到0-255范围
+        Mat result = new Mat();
+        Cv2.Threshold(msr, msr, 0, 0, ThresholdTypes.Tozero);
+        Cv2.Threshold(msr, msr, 255, 255, ThresholdTypes.Trunc);
+        msr.ConvertTo(result, MatType.CV_8UC1);
+        
+        return result;
+    }
+}
+
+private Mat SingleScaleRetinex(Mat image, double sigma)
+{
+    // 对图像进行高斯模糊
+    Mat blurred = new Mat();
+    Cv2.GaussianBlur(image, blurred, new OpenCvSharp.Size(0, 0), sigma);
+    
+    // 确保不出现0值（与Python代码一致）
+    Mat safeImage = new Mat();
+    Mat safeBlurred = new Mat();
+    
+    Cv2.Max(image, 1.0, safeImage);
+    Cv2.Max(blurred, 1.0, safeBlurred);
+    
+    // 直接计算log10
+    Mat logImage = new Mat();
+    Mat logBlurred = new Mat();
+    
+    Log10Mat(safeImage, logImage);
+    Log10Mat(safeBlurred, logBlurred);
+    
+    // 计算retinex = log(image) - log(blurred)
+    Mat retinex = new Mat();
+    Cv2.Subtract(logImage, logBlurred, retinex);
+    
+    return retinex;
+}
+
+// 计算以10为底的对数（Python中的np.log10等价实现）
+private void Log10Mat(Mat src, Mat dst)
+{
+    Cv2.Log(src, dst);
+    Cv2.Multiply(dst, 1.0 / Math.Log(10), dst);
+}
+
+private Mat MultiScaleRetinex(Mat image, double[] sigmaList)
+{
+    // 初始化为全0矩阵
+    Mat retinex = Mat.Zeros(image.Size(), image.Type());
+    
+    // 计算多尺度Retinex
+    foreach (double sigma in sigmaList)
+    {
+        Mat singleRetinex = SingleScaleRetinex(image, sigma);
+        Cv2.Add(retinex, singleRetinex, retinex);
+    }
+    
+    // 取平均值
+    Cv2.Divide(retinex, sigmaList.Length, retinex);
+    
+    return retinex;
+}
+
+private Mat ColorRestoration(Mat image, double alpha, double beta)
+{
+    // 分割通道
+    Mat[] channels = Cv2.Split(image);
+    
+    // 计算通道和
+    Mat imgSum = new Mat();
+    Cv2.Add(channels[0], channels[1], imgSum);
+    Cv2.Add(imgSum, channels[2], imgSum);
+    
+    // 创建与图像大小相同的3通道输出图像
+    Mat colorResto = Mat.Zeros(image.Size(), image.Type());
+    Mat[] colorRestoChannels = new Mat[3];
+    
+    for (int i = 0; i < 3; i++)
+    {
+        colorRestoChannels[i] = new Mat(image.Size(), MatType.CV_64FC1);
+        
+        // 计算alpha * channel + 1.0
+        Mat alphaChannel = new Mat();
+        Cv2.Multiply(channels[i], alpha, alphaChannel);
+        Cv2.Add(alphaChannel, 1.0, alphaChannel);
+        
+        // 计算log10(alpha * channel + 1.0)
+        Mat logAlphaChannel = new Mat();
+        Log10Mat(alphaChannel, logAlphaChannel);
+        
+        // 创建imgSum的副本并添加3.0
+        Mat imgSumPlus3 = new Mat();
+        Cv2.Add(imgSum, 3.0, imgSumPlus3);
+        
+        // 计算log10(imgSum + 3.0)
+        Mat logImgSum = new Mat();
+        Log10Mat(imgSumPlus3, logImgSum);
+        
+        // 计算差值
+        Mat diff = new Mat();
+        Cv2.Subtract(logAlphaChannel, logImgSum, diff);
+        
+        // 乘以beta
+        Cv2.Multiply(diff, beta, colorRestoChannels[i]);
+    }
+    
+    // 合并通道
+    Cv2.Merge(colorRestoChannels, colorResto);
+    
+    return colorResto;
+}
 
         // 图像降噪
         public Mat AnisotropicDiffusion(Mat input, int iterations = 10, float kappa = 50.0f)

@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.OnnxRuntime.Tensors;
 
-namespace EndoscopyAI.ViewModels
+namespace EndoscopyAI.ViewModels.SubViewModels
 {
     interface IImageProcess
     {
@@ -380,12 +380,12 @@ namespace EndoscopyAI.ViewModels
                     int grayValue = (int)(maxProb * 255);
 
                     // 颜色映射：灰度值决定RGB，透明度保持不变
-                    System.Drawing.Color color = predictedClass switch
+                    Color color = predictedClass switch
                     {
-                        1 => System.Drawing.Color.FromArgb(128, grayValue, 0, 0), // 红色类别，灰度
-                        2 => System.Drawing.Color.FromArgb(128, 0, grayValue, 0), // 绿色类别，灰度
-                        3 => System.Drawing.Color.FromArgb(128, 0, 0, grayValue), // 蓝色类别，灰度
-                        _ => System.Drawing.Color.Transparent                             // 背景透明
+                        1 => Color.FromArgb(128, grayValue, 0, 0), // 红色类别，灰度
+                        2 => Color.FromArgb(128, 0, grayValue, 0), // 绿色类别，灰度
+                        3 => Color.FromArgb(128, 0, 0, grayValue), // 蓝色类别，灰度
+                        _ => Color.Transparent                             // 背景透明
                     };
 
                     overlay.SetPixel(x, y, color);

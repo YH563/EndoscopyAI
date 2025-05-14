@@ -1,5 +1,5 @@
 ﻿using EndoscopyAI.Services;
-using EndoscopyAI.ViewModels;
+using EndoscopyAI.ViewModels.SubViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

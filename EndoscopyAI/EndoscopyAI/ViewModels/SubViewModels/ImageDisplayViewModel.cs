@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using OpenCvSharp.WpfExtensions;
 
-namespace EndoscopyAI.ViewModels
+namespace EndoscopyAI.ViewModels.SubViewModels
 {
     interface IImageDisplay
     {
@@ -45,7 +45,7 @@ namespace EndoscopyAI.ViewModels
             if (image == null || imageControl == null)
                 throw new ArgumentNullException("Image or ImageControl cannot be null");
 
-            BitmapSource bitmapSource = OpenCvSharp.WpfExtensions.BitmapSourceConverter.ToBitmapSource(image);
+            BitmapSource bitmapSource = image.ToBitmapSource();
             RenderOptions.SetBitmapScalingMode(imageControl, scalingMode);
             imageControl.Source = bitmapSource;
         }

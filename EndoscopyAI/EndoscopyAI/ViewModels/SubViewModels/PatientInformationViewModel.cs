@@ -8,9 +8,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using EndoscopyAI.Services;
-using EndoscopyAI.ViewModels;
 
-namespace EndoscopyAI.ViewModels
+namespace EndoscopyAI.ViewModels.SubViewModels
 {
     interface IPatientInformation
     {

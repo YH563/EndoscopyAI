@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Drawing;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using EndoscopyAI.Services;
+using EndoscopyAI.ViewModels.SubViewModels;
 
 namespace EndoscopyAI.Views
 {

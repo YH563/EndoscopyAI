@@ -63,6 +63,23 @@ namespace EndoscopyAI.Views
             InitializeComponent();
             _imageDisplay = new ImageDisplay(); // 初始化 ImageDisplay 实例
             DataContext = this; // DataContext 设置为自身
+
+            // 监听增强/分割等处理后的图像变化
+            DataSharingService.Instance.PropertyChanged += (sender, e) =>
+            {
+                if (e.PropertyName == nameof(DataSharingService.Instance.ProcessedImage))
+                {
+                    // 这里需要在UI线程更新Image控件
+                    Dispatcher.Invoke(() =>
+                    {
+                        var processed = DataSharingService.Instance.ProcessedImage;
+                        if (processed is BitmapSource bitmapSource)
+                        {
+                            ImageDisplay.Source = bitmapSource;
+                        }
+                    });
+                }
+            };
         }
 
         // 加载图像文件

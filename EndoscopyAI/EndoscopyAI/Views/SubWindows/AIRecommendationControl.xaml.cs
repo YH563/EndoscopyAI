@@ -92,9 +92,30 @@ namespace EndoscopyAI.Views.SubWindows
             };
         }
 
+        private void SyncImagePath()
+        {
+            imagePath = DataSharingService.Instance.ImagePath;
+            if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
+            {
+                if (_currentImage == null || _originImage == null)
+                {
+                    try
+                    {
+                        _currentImage = _imageDisplay.LoadImageFromFile(imagePath);
+                        _originImage = _currentImage.Clone();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"加载图像时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
         // 图像增强
         private void ImgEnhance(object sender, RoutedEventArgs e)
         {
+            SyncImagePath();
             if (_currentImage == null || _imageDisplay == null)
             {
                 MessageBox.Show("尚未导入图像！", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -119,6 +140,7 @@ namespace EndoscopyAI.Views.SubWindows
         // 图像分类预测
         private void ClassPredict(object sender, RoutedEventArgs e)
         {
+            SyncImagePath();
             if (string.IsNullOrEmpty(imagePath))
             {
                 MessageBox.Show("请先上传一张图片。");
@@ -130,8 +152,6 @@ namespace EndoscopyAI.Views.SubWindows
                 var (predictedClass, confidence) = classifier.Predict(imagePath);
                 DataSharingService.Instance.DiagnosisResult = predictedClass;
                 DataSharingService.Instance.Confidence = confidence;
-
-                MessageBox.Show($"分类结果: {predictedClass}\n置信度: {confidence:P2}", "分类预测结果", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -142,6 +162,7 @@ namespace EndoscopyAI.Views.SubWindows
         // 图像分割预测
         private void SegmentPredict(object sender, RoutedEventArgs e)
         {
+            SyncImagePath();
             if (string.IsNullOrEmpty(imagePath))
             {
                 MessageBox.Show("请先上传一张图片。");
@@ -209,8 +230,6 @@ namespace EndoscopyAI.Views.SubWindows
 
                 // 展示掩码图像
                 DataSharingService.Instance.SegmentationImage = maskSource;
-
-                MessageBox.Show("分割完成，请查看结果", "分割预测", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {

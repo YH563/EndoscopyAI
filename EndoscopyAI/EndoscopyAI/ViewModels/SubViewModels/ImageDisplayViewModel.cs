@@ -68,7 +68,10 @@ namespace EndoscopyAI.ViewModels.SubViewModels
 
         public object ConvertMatToBitmapSource(Mat currentImage)
         {
-            throw new NotImplementedException();
+            if (currentImage == null || currentImage.Empty())
+                return null;
+            // 转换为 BitmapSource 并返回
+            return currentImage.ToBitmapSource();
         }
     }
 }

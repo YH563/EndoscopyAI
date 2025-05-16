@@ -108,33 +108,31 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <materialDesign:Card Grid.Column="0" Margin="10, 22" Padding="5">
-            <StackPanel x:Name="ButtonPanel" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
-                <Button Height="50" Click="ImgEnhance">
-                    <Button.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="ImageFilter" Margin="0,3,5,0"/>
-                            <TextBlock Text="图像增强"/>
-                        </StackPanel>
-                    </Button.Content>
-                </Button>
-                <Button Height="50" Click="ClassPredict">
-                    <Button.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Spa" Margin="0,5,5,0" />
-                            <TextBlock Text="分类预测" />
-                        </StackPanel>
-                    </Button.Content>
-                </Button>
-                <Button Height="50" Click="SegmentPredict">
-                    <Button.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Grid" Margin="0,5,5,0" />
-                            <TextBlock Text="分割预测" />
-                        </StackPanel>
-                    </Button.Content>
-                </Button>
-            </StackPanel>
-        </materialDesign:Card>
+        <StackPanel x:Name="ButtonPanel" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+            <Button Height="50" Click="ImgEnhance">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ImageFilter" Margin="0,3,5,0"/>
+                        <TextBlock Text="图像增强"/>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button Height="50" Click="ClassPredict">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Spa" Margin="0,5,5,0" />
+                        <TextBlock Text="分类预测" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button Height="50" Click="SegmentPredict">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Grid" Margin="0,5,5,0" />
+                        <TextBlock Text="分割预测" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+        </StackPanel>
     </Grid>
 </UserControl>

@@ -73,5 +73,6 @@ namespace EndoscopyAI.ViewModels.SubViewModels
             // 转换为 BitmapSource 并返回
             return currentImage.ToBitmapSource();
         }
+
     }
 }

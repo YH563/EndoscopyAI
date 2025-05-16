@@ -102,7 +102,6 @@ namespace EndoscopyAI.Views.SubWindows
                     try
                     {
                         _currentImage = _imageDisplay.LoadImageFromFile(imagePath);
-                        _originImage = _currentImage.Clone();
                     }
                     catch (Exception ex)
                     {

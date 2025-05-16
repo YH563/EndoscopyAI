@@ -112,9 +112,21 @@ namespace EndoscopyAI.Views
             DataSharingService.Instance.ImagePath = imagePath;
         }
 
+        public Mat ConvertBitmapSourceToMat(BitmapSource bitmapSource)
+        {
+            if (bitmapSource == null)
+                return null;
+            return OpenCvSharp.WpfExtensions.BitmapSourceConverter.ToMat(bitmapSource);
+        }
+
         // 保存图像文件
         private void SaveFile(object sender, RoutedEventArgs e)
         {
+            // 更新现有数据
+            imagePath = DataSharingService.Instance.ImagePath;
+            var bitmap_temp = DataSharingService.Instance.ProcessedImage;
+            _currentImage = ConvertBitmapSourceToMat(bitmap_temp as BitmapSource);
+
             if (_currentImage == null)
             {
                 MessageBox.Show("没有图像可保存", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -155,6 +167,7 @@ namespace EndoscopyAI.Views
             if (_originImage != null)
             {
                 _currentImage = _originImage.Clone(); // 克隆原始图像
+                DataSharingService.Instance.ProcessedImage = _currentImage;
                 _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
             }
             else

@@ -17,7 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace EndoscopyAI.Views
+namespace EndoscopyAI.Views.SubWindows
 {
     /// <summary>
     /// PatientInformationControl.xaml 的交互逻辑

@@ -21,6 +21,7 @@ namespace EndoscopyAI.ViewModels.SubViewModels
 
         // 保存图像
         bool ImageSave(Mat image, string filePath, int? quality = null);
+        object ConvertMatToBitmapSource(Mat currentImage);
     }
 
     public class ImageDisplay : IImageDisplay
@@ -63,6 +64,11 @@ namespace EndoscopyAI.ViewModels.SubViewModels
                 Console.WriteLine($"Error saving image: {ex.Message}");
                 return false;
             }
+        }
+
+        public object ConvertMatToBitmapSource(Mat currentImage)
+        {
+            throw new NotImplementedException();
         }
     }
 }

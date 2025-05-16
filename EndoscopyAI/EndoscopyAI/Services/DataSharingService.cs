@@ -69,6 +69,8 @@ namespace EndoscopyAI.Services
         // 格式化显示的置信度
         public string ConfidenceDisplay => $"{_confidenceLevel:P2}";
 
+        public object ProcessedImage { get; internal set; }
+
         // 实现属性变更通知
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? name = null)

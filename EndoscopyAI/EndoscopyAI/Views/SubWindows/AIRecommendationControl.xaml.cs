@@ -11,7 +11,6 @@ using System.Windows.Media.Imaging;
 using EndoscopyAI.Services;
 using EndoscopyAI.ViewModels;
 using OpenCvSharp;
-using OnnxImageClassifierWPF;
 using EndoscopyAI.ViewModels.SubViewModels;
 
 namespace EndoscopyAI.Views.SubWindows

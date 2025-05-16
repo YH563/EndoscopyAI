@@ -11,7 +11,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using EndoscopyAI.ViewModels;
-using OnnxImageClassifierWPF;
 using System.ComponentModel;
 using System.Drawing;
 using Microsoft.ML.OnnxRuntime.Tensors;

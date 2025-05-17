@@ -3,10 +3,77 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows"
         mc:Ignorable="d"
-        Title="LoginWindow" Height="450" Width="800">
+        Title="登录" Height="450" Width="900" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <!-- 自定义按钮样式 -->
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Padding" Value="10" />
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <!-- 自定义 TextBlock 样式 -->
+            <Style TargetType="TextBlock">
+                <Setter Property="Margin" Value="10,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="18" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6*" />
+            <ColumnDefinition Width="4*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧紫色区域 -->
+        <Grid Grid.Column="0" Background="#673AB7">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0">
+                <!-- Logo 预留位置 -->
+                <Border Width="110" Height="110" Background="White" CornerRadius="55" Margin="0,0,30,0" />
+                <!-- 文字上下排列 -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left">
+                    <TextBlock Text="AI辅助诊断系统" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock Text="@天问九龙" Foreground="White" FontSize="18" Margin="0,0,0,0" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- 右侧表单区域 -->
+        <Grid Grid.Column="1">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="280">
+                <TextBlock Text="工号" Margin="0,0,0,5"/>
+                <TextBox x:Name="UserIdTextBox" Height="35" FontSize="16" Margin="0,0,0,15" />
+
+                <TextBlock Text="密码" Margin="0,0,0,5"/>
+                <PasswordBox x:Name="PasswordBox" Height="35" FontSize="16" Margin="0,0,0,25" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="登录" Width="110" Height="38" Margin="0,0,10,0" Click="Login_Click"/>
+                    <Button Content="注册" Width="110" Height="38" Click="Register_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

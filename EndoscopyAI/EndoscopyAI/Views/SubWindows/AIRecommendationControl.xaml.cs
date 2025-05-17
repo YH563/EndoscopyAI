@@ -18,13 +18,19 @@ namespace EndoscopyAI.Views.SubWindows
     /// <summary>
     /// AIRecommendationControl.xaml 的交互逻辑
     /// </summary>
-    public partial class AIRecommendationControl : UserControl, INotifyPropertyChanged
+    public partial class AIRecommendationControl : UserControl
     {
-        // 用于存储图像路径 - 该变量可能需要通过服务或其他方式获取
+        // 创建图像处理实例
+        ImageProcess imageProcess = new ImageProcess();
+
+        // 用于存储图像路径
         private string imagePath;
 
         // 用于加载和显示图像的实例
         private readonly IImageDisplay _imageDisplay;
+
+        // 用于存储图像处理的 ViewModel
+        private ImageProcessViewModel _imageProcessViewModel = new ImageProcessViewModel();
 
         // 用于存储当前加载的图像
         private Mat _currentImage;
@@ -52,15 +58,6 @@ namespace EndoscopyAI.Views.SubWindows
 
         // 用于存储分割结果的叠加图像
         private BitmapSource segmentationOverlay;
-
-        // 属性变更通知事件
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        // 触发属性变更通知
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         public AIRecommendationControl()
         {
@@ -91,29 +88,13 @@ namespace EndoscopyAI.Views.SubWindows
             };
         }
 
-        private void SyncImagePath()
-        {
-            imagePath = DataSharingService.Instance.ImagePath;
-            if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
-            {
-                if (_currentImage == null || _originImage == null)
-                {
-                    try
-                    {
-                        _currentImage = _imageDisplay.LoadImageFromFile(imagePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"加载图像时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
-        }
-
         // 图像增强
         private void ImgEnhance(object sender, RoutedEventArgs e)
         {
-            SyncImagePath();
+            _imageProcessViewModel.SyncImagePath();
+            _currentImage = _imageProcessViewModel.CurrentImage;
+            _originImage = _imageProcessViewModel.OriginImage;
+            imagePath = _imageProcessViewModel.ImagePath;
             if (_currentImage == null || _imageDisplay == null)
             {
                 MessageBox.Show("尚未导入图像！", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -122,8 +103,6 @@ namespace EndoscopyAI.Views.SubWindows
 
             try
             {
-                // 图像增强处理
-                var imageProcess = new ImageProcess();
                 _currentImage = imageProcess.HistogramEqualization(_currentImage); // 更新 _currentImage
 
                 // 通知主窗口显示增强后的图像
@@ -138,7 +117,10 @@ namespace EndoscopyAI.Views.SubWindows
         // 图像分类预测
         private void ClassPredict(object sender, RoutedEventArgs e)
         {
-            SyncImagePath();
+            _imageProcessViewModel.SyncImagePath();
+            _currentImage = _imageProcessViewModel.CurrentImage;
+            _originImage = _imageProcessViewModel.OriginImage;
+            imagePath = _imageProcessViewModel.ImagePath;
             if (string.IsNullOrEmpty(imagePath))
             {
                 MessageBox.Show("请先上传一张图片。");
@@ -160,7 +142,10 @@ namespace EndoscopyAI.Views.SubWindows
         // 图像分割预测
         private void SegmentPredict(object sender, RoutedEventArgs e)
         {
-            SyncImagePath();
+            _imageProcessViewModel.SyncImagePath();
+            _currentImage = _imageProcessViewModel.CurrentImage;
+            _originImage = _imageProcessViewModel.OriginImage;
+            imagePath = _imageProcessViewModel.ImagePath;
             if (string.IsNullOrEmpty(imagePath))
             {
                 MessageBox.Show("请先上传一张图片。");
@@ -171,8 +156,6 @@ namespace EndoscopyAI.Views.SubWindows
             {
                 // 执行分割预测
                 var result = segmenter.Predict(imagePath);
-
-                var imageProcess = new ImageProcess();
 
                 // 创建透明叠加层
                 var overlay = imageProcess.CreateTransparentOverlay(result.OutputTensor);

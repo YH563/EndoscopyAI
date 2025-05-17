@@ -18,6 +18,9 @@ namespace EndoscopyAI.ViewModels.SubViewModels
 
         // 更新病人信息
         void UpdatePatient(Patient updatedPatient);
+
+        // 获取病人信息
+        Patient GetPatient(string patientName);
     }
 
     public class PatientInformation : IPatientInformation
@@ -84,6 +87,13 @@ namespace EndoscopyAI.ViewModels.SubViewModels
             {
                 MessageBox.Show("请输入正确完整的病人信息！", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        // 获取病人信息
+        public Patient GetPatient(string patientName)
+        {
+            GlobalDbService.DbService.FindPatientByNameAndDate(patientName);
+
         }
     }
 }

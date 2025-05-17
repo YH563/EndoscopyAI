@@ -18,7 +18,6 @@ namespace EndoscopyAI.Services
 
         // 不需要实时显示的数据
         public string? ImagePath { get; set; }
-        //public string? HeatMapPath { get; set; }
 
         // 诊断结果（支持外部赋值）
         private string _diagnosisResult = string.Empty;
@@ -51,16 +50,16 @@ namespace EndoscopyAI.Services
             }
         }
 
-        // 分割结果
-        private BitmapSource? _segmentationImage;
-        public BitmapSource? SegmentationImage
+        // 医生姓名
+        private string _doctorName = string.Empty;
+        public string DoctorName
         {
-            get => _segmentationImage;
-            set
-            {
-                if (_segmentationImage != value)
+            get => _doctorName;
+            set 
+            { 
+                if (_doctorName != value)
                 {
-                    _segmentationImage = value;
+                    _doctorName = value;
                     OnPropertyChanged();
                 }
             }

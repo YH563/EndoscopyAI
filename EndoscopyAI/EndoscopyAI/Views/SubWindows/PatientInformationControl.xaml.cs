@@ -47,12 +47,12 @@ namespace EndoscopyAI.Views.SubWindows
             }
             patient.Contact = stringContact.Text;
             patient.NumberID = stringNumberID.Text;
-            patient.DiagnosisResult = DataSharingService.Instance.DiagnosisResult;
-            patient.ConfidenceLevel = DataSharingService.Instance.Confidence;
-            patient.ImagePath = DataSharingService.Instance.ImagePath;
+            patient.DiagnosisResult = DataSharingService.Instance.Patient.AIResult;
+            patient.AIConfidenceLevel = DataSharingService.Instance.Patient.AIConfidenceLevel;
+            patient.ImagePath = DataSharingService.Instance.Patient.ImagePath;
             //patient.HeatMapPath = DataSharingService.Instance.HeatMapPath;
 
-            patientInformation.UpdatePatient(patient);
+            patientInformation.UpdatePatientInformation(patient);
         }
 
     }

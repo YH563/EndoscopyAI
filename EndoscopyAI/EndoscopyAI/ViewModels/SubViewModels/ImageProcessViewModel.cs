@@ -14,39 +14,35 @@ namespace EndoscopyAI.ViewModels.SubViewModels
 {
     interface IImageProcess
     {
-        //void UpdateImg(Patient updatedPatient);
+        //图像增强
+        Mat ImgEnhance(Mat input);
+
+        // 图像分类
+        (string, float) ImgClassify(string imagePath);
+
+        // 图像分割
+        SegmentationResult ImgSegment(string imagePath);
     }
 
-    public class ImageProcessViewModel:IImageProcess
+    public class ImageProcessViewModel : IImageProcess
     {
-        private readonly IImageDisplay _imageDisplay;
-        public string ImagePath { get; private set; }
-        public Mat CurrentImage { get; private set; }
-        public Mat OriginImage { get; private set; }
-
-        public ImageProcessViewModel()
+        //图像增强
+        public Mat ImgEnhance(Mat input)
         {
-            _imageDisplay = new ImageDisplay();
+            return ImageProcess.Instance.HistogramEqualization(input);
         }
 
-        public void SyncImagePath()
+        // 图像分类
+        public (string, float) ImgClassify(string imagePath)
         {
-            ImagePath = DataSharingService.Instance.ImagePath;
-            if (!string.IsNullOrEmpty(ImagePath) && File.Exists(ImagePath))
-            {
-                if (CurrentImage == null || OriginImage == null)
-                {
-                    try
-                    {
-                        CurrentImage = _imageDisplay.LoadImageFromFile(ImagePath);
-                        OriginImage = CurrentImage.Clone();
-                    }
-                    catch (System.Exception ex)
-                    {
-                        MessageBox.Show($"加载图像时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-            }
+            return AIServiceImpl.Instance.ImgClassify(imagePath);
+        }
+
+        // 图像分割
+        public SegmentationResult ImgSegment(string imagePath)
+        {
+            return AIServiceImpl.Instance.ImgSegment(imagePath);
         }
     }
-}
+
+    }

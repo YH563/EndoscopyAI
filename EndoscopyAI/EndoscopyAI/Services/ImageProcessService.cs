@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ML.OnnxRuntime.Tensors;
+using OpenCvSharp.WpfExtensions;
+using System.Windows.Media.Imaging;
+using System.Windows.Media;
 
 namespace EndoscopyAI.Services
 {
@@ -32,10 +35,17 @@ namespace EndoscopyAI.Services
 
         // 创建透明叠加层
         Bitmap CreateTransparentOverlay(Tensor<float> output);
+
+        //将Bitmap转换为BitmapSource
+        Mat ConvertRenderTargetBitmapToMat(RenderTargetBitmap renderBitmap);
     }
+
 
     public class ImageProcess : ImageProcessService
     {
+        private readonly static ImageProcess _instance = new ImageProcess();
+        public static ImageProcess Instance => _instance;
+
         public Mat HistogramEqualization(Mat input)
         {
             if (input == null || input.Empty())
@@ -524,12 +534,12 @@ namespace EndoscopyAI.Services
                     int grayValue = (int)(maxProb * 255);
 
                     // 颜色映射：灰度值决定RGB，透明度保持不变
-                    Color color = predictedClass switch
+                    System.Drawing.Color color = predictedClass switch
                     {
-                        1 => Color.FromArgb(128, grayValue, 0, 0), // 红色类别，灰度
-                        2 => Color.FromArgb(128, 0, grayValue, 0), // 绿色类别，灰度
-                        3 => Color.FromArgb(128, 0, 0, grayValue), // 蓝色类别，灰度
-                        _ => Color.Transparent                             // 背景透明
+                        1 => System.Drawing.Color.FromArgb(128, grayValue, 0, 0), // 红色类别，灰度
+                        2 => System.Drawing.Color.FromArgb(128, 0, grayValue, 0), // 绿色类别，灰度
+                        3 => System.Drawing.Color.FromArgb(128, 0, 0, grayValue), // 蓝色类别，灰度
+                        _ => System.Drawing.Color.Transparent                             // 背景透明
                     };
 
                     overlay.SetPixel(x, y, color);
@@ -537,6 +547,30 @@ namespace EndoscopyAI.Services
             }
 
             return overlay;
+        }
+
+        public Mat ConvertRenderTargetBitmapToMat(RenderTargetBitmap renderBitmap)
+        {
+            if (renderBitmap == null)
+                throw new ArgumentNullException(nameof(renderBitmap), "输入图像不能为空");
+
+            // 转为 BitmapSource
+            BitmapSource bitmapSource = renderBitmap;
+
+            // 转为 Bgra32 格式
+            if (bitmapSource.Format != PixelFormats.Bgra32)
+                bitmapSource = new FormatConvertedBitmap(bitmapSource, PixelFormats.Bgra32, null, 0);
+
+            int width = bitmapSource.PixelWidth;
+            int height = bitmapSource.PixelHeight;
+            int stride = width * 4;
+            byte[] pixels = new byte[height * stride];
+            bitmapSource.CopyPixels(pixels, stride, 0);
+
+            // Replace the problematic line with the following code to fix the error:  
+            Mat mat = Mat.FromPixelData(height, width, MatType.CV_8UC4, pixels);
+
+            return mat;
         }
     }
 }

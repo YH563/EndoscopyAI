@@ -30,7 +30,7 @@ namespace EndoscopyAI.Views.SubWindows
             }
 
             // 先用来测试
-            if (userId == "schbmeseu" && password == "1233211234567")
+            if (userId == "123" && password == "123")
             {
                 // 显示主窗口
                 var mainWindow = new MainWindow();

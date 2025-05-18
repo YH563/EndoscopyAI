@@ -20,11 +20,6 @@ namespace EndoscopyAI.Views.SubWindows
     /// </summary>
     public partial class AIRecommendationControl : UserControl
     {
-        // 创建图像处理实例
-        ImageProcess imageProcess = new ImageProcess();
-
-        // 用于存储图像路径
-        private string imagePath;
 
         // 用于加载和显示图像的实例
         private readonly IImageDisplay _imageDisplay;
@@ -32,29 +27,9 @@ namespace EndoscopyAI.Views.SubWindows
         // 用于存储图像处理的 ViewModel
         private ImageProcessViewModel _imageProcessViewModel = new ImageProcessViewModel();
 
-        // 用于存储当前加载的图像
-        private Mat _currentImage;
+        IImageProcess imageProcess = new ImageProcessViewModel();  // 创建图像处理实例
 
-        // 用于存储原始图像
-        private Mat _originImage;
-
-        // 用于存储分类器
-        private OnnxClassifier classifier = new OnnxClassifier(
-            Path.Combine(
-                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
-                "PredModels",
-                "ClassifyModel.onnx"
-            )
-        );
-
-        // 用于存储分割器
-        private OnnxSegmenter segmenter = new OnnxSegmenter(
-            Path.Combine(
-                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
-                "PredModels",
-                "SegmentModel.onnx"
-            )
-        );
+        ImageProcess imgAlgorithm = new ImageProcess(); // 创建图像处理算法实例
 
         // 用于存储分割结果的叠加图像
         private BitmapSource segmentationOverlay;
@@ -64,38 +39,12 @@ namespace EndoscopyAI.Views.SubWindows
             InitializeComponent();
             _imageDisplay = new ImageDisplay(); // 初始化 ImageDisplay 实例
             DataContext = this; // 设置数据上下文为自身
-
-            // 订阅共享数据变化事件，以便更新当前图像
-            DataSharingService.Instance.PropertyChanged += (sender, e) =>
-            {
-                if (e.PropertyName == nameof(DataSharingService.Instance.ImagePath))
-                {
-                    // 当共享服务中的图像路径变化时，更新本地图像
-                    imagePath = DataSharingService.Instance.ImagePath;
-                    if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
-                    {
-                        try
-                        {
-                            _currentImage = _imageDisplay.LoadImageFromFile(imagePath);
-                            _originImage = _currentImage.Clone();
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"加载图像时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                        }
-                    }
-                }
-            };
         }
 
         // 图像增强
         private void ImgEnhance(object sender, RoutedEventArgs e)
         {
-            _imageProcessViewModel.SyncImagePath();
-            _currentImage = _imageProcessViewModel.CurrentImage;
-            _originImage = _imageProcessViewModel.OriginImage;
-            imagePath = _imageProcessViewModel.ImagePath;
-            if (_currentImage == null || _imageDisplay == null)
+            if (DataSharingService.Instance.ProcessedImage == null || _imageDisplay == null)
             {
                 MessageBox.Show("尚未导入图像！", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -103,10 +52,7 @@ namespace EndoscopyAI.Views.SubWindows
 
             try
             {
-                _currentImage = imageProcess.HistogramEqualization(_currentImage); // 更新 _currentImage
-
-                // 通知主窗口显示增强后的图像
-                DataSharingService.Instance.ProcessedImage = _imageDisplay.ConvertMatToBitmapSource(_currentImage);
+                DataSharingService.Instance.ProcessedImage = _imageProcessViewModel.ImgEnhance(DataSharingService.Instance.ProcessedImage); // 更新 _currentImage
             }
             catch (Exception ex)
             {
@@ -117,11 +63,7 @@ namespace EndoscopyAI.Views.SubWindows
         // 图像分类预测
         private void ClassPredict(object sender, RoutedEventArgs e)
         {
-            _imageProcessViewModel.SyncImagePath();
-            _currentImage = _imageProcessViewModel.CurrentImage;
-            _originImage = _imageProcessViewModel.OriginImage;
-            imagePath = _imageProcessViewModel.ImagePath;
-            if (string.IsNullOrEmpty(imagePath))
+            if (string.IsNullOrEmpty(DataSharingService.Instance.Patient.ImagePath))
             {
                 MessageBox.Show("请先上传一张图片。");
                 return;
@@ -129,9 +71,9 @@ namespace EndoscopyAI.Views.SubWindows
 
             try
             {
-                var (predictedClass, confidence) = classifier.Predict(imagePath);
-                DataSharingService.Instance.DiagnosisResult = predictedClass;
-                DataSharingService.Instance.Confidence = confidence;
+                var (predictedClass, confidence) = imageProcess.ImgClassify(DataSharingService.Instance.Patient.ImagePath);
+                DataSharingService.Instance.Patient.AIResult = predictedClass;
+                DataSharingService.Instance.Patient.AIConfidenceLevel = confidence;
             }
             catch (Exception ex)
             {
@@ -142,11 +84,7 @@ namespace EndoscopyAI.Views.SubWindows
         // 图像分割预测
         private void SegmentPredict(object sender, RoutedEventArgs e)
         {
-            _imageProcessViewModel.SyncImagePath();
-            _currentImage = _imageProcessViewModel.CurrentImage;
-            _originImage = _imageProcessViewModel.OriginImage;
-            imagePath = _imageProcessViewModel.ImagePath;
-            if (string.IsNullOrEmpty(imagePath))
+            if (string.IsNullOrEmpty(DataSharingService.Instance.Patient.ImagePath))
             {
                 MessageBox.Show("请先上传一张图片。");
                 return;
@@ -155,10 +93,10 @@ namespace EndoscopyAI.Views.SubWindows
             try
             {
                 // 执行分割预测
-                var result = segmenter.Predict(imagePath);
+                var result = _imageProcessViewModel.ImgSegment(DataSharingService.Instance.Patient.ImagePath);
 
                 // 创建透明叠加层
-                var overlay = imageProcess.CreateTransparentOverlay(result.OutputTensor);
+                var overlay = imgAlgorithm.CreateTransparentOverlay(result.OutputTensor);
 
                 // 转换为BitmapSource
                 segmentationOverlay = Imaging.CreateBitmapSourceFromHBitmap(
@@ -168,7 +106,7 @@ namespace EndoscopyAI.Views.SubWindows
                     BitmapSizeOptions.FromWidthAndHeight(512, 512));
 
                 // 直接修改原始图像的Source，添加叠加效果
-                var original = new Bitmap(imagePath);
+                var original = new Bitmap(DataSharingService.Instance.Patient.ImagePath);
                 var originalSource = Imaging.CreateBitmapSourceFromHBitmap(
                     original.GetHbitmap(),
                     IntPtr.Zero,
@@ -187,8 +125,10 @@ namespace EndoscopyAI.Views.SubWindows
                     original.Width, original.Height, 96, 96, PixelFormats.Pbgra32);
                 combined.Render(visual);
 
+                var combined_mat = imgAlgorithm.ConvertRenderTargetBitmapToMat(combined);
+
                 // 将合成后的图像发送到共享服务
-                DataSharingService.Instance.ProcessedImage = combined;
+                DataSharingService.Instance.ProcessedImage = combined_mat;
 
                 // 创建黑白掩码图
                 var maskBitmap = new Bitmap(512, 512);
@@ -208,9 +148,6 @@ namespace EndoscopyAI.Views.SubWindows
                     IntPtr.Zero,
                     Int32Rect.Empty,
                     BitmapSizeOptions.FromWidthAndHeight(512, 512));
-
-                // 展示掩码图像
-                DataSharingService.Instance.SegmentationImage = maskSource;
             }
             catch (Exception ex)
             {

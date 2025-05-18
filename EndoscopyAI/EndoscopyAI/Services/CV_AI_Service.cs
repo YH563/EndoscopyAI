@@ -13,6 +13,48 @@ using System.Linq;
 
 namespace EndoscopyAI.Services
 {
+    interface AIService
+    {
+        // 图像分类
+        (string, float) ImgClassify(string imagePath);
+        // 图像分割
+        SegmentationResult ImgSegment(string imagePath);
+    }
+
+    public class AIServiceImpl : AIService
+    {
+        private readonly static AIServiceImpl _instance = new AIServiceImpl();
+        public static AIServiceImpl Instance => _instance;
+
+        // 图像分类器
+        private OnnxClassifier classifier = new OnnxClassifier(
+            Path.Combine(
+                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
+                "PredModels",
+                "ClassifyModel.onnx"
+            )
+        );
+
+        // 图像分割器
+        private OnnxSegmenter segmenter = new OnnxSegmenter(
+            Path.Combine(
+                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
+                "PredModels",
+                "SegmentModel.onnx"
+            )
+        );
+
+        // 实现接口
+        public (string, float) ImgClassify(string imagePath)
+        {
+            return classifier.Predict(imagePath);
+        }
+
+        public SegmentationResult ImgSegment(string imagePath)
+        {
+            return segmenter.Predict(imagePath);
+        }
+    }
     // 枚举类型，存放疾病类别
     public enum DiseaseCategory
     {

@@ -23,62 +23,27 @@ namespace EndoscopyAI.Views
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : System.Windows.Window, INotifyPropertyChanged
-    {
-        // 病人信息实例
-        Patient patient = new Patient();
-        // 病人信息接口实例
-        IPatientInformation patientInformation = new PatientInformation();  
-        // 用于存储图像路径
-        private string imagePath;
+    { 
         // 用于加载和保存图像的实例
-        private readonly IImageDisplay _imageDisplay;
-        // 用于存储当前加载的图像
-        private Mat _currentImage;
-        // 用于存储原始图像
-        private Mat _originImage;
-        // 用于存储分类器
-        private OnnxClassifier classifier = new OnnxClassifier(
-            System.IO.Path.Combine(
-                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
-                "PredModels",
-                "ClassifyModel.onnx"
-            )
-        );
-        // 用于存储分割器
-        private OnnxSegmenter segmenter = new OnnxSegmenter(
-            System.IO.Path.Combine(
-                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
-                "PredModels",
-                "SegmentModel.onnx"
-            )
-        );
-        // 用于存储分割结果的叠加图像
-        private BitmapSource segmentationOverlay;
+        private readonly IImageDisplay _imageDisplay = new ImageDisplay();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public MainWindow()
         {
             InitializeComponent();
-            _imageDisplay = new ImageDisplay(); // 初始化 ImageDisplay 实例
-            DataContext = this; // DataContext 设置为自身
+            DataSharingService.Instance.ImageChanged += OnImageChanged;
 
-            // 监听增强/分割等处理后的图像变化
-            DataSharingService.Instance.PropertyChanged += (sender, e) =>
+        }
+
+        private void OnImageChanged(object? sender, EventArgs e)
+        {
+            // 处理图像变化事件
+            if (DataSharingService.Instance.ProcessedImage != null)
             {
-                if (e.PropertyName == nameof(DataSharingService.Instance.ProcessedImage))
-                {
-                    // 这里需要在UI线程更新Image控件
-                    Dispatcher.Invoke(() =>
-                    {
-                        var processed = DataSharingService.Instance.ProcessedImage;
-                        if (processed is BitmapSource bitmapSource)
-                        {
-                            ImageDisplay.Source = bitmapSource;
-                        }
-                    });
-                }
-            };
+                // 显示处理后的图像
+                _imageDisplay.DisplayImage(ImageDisplay, DataSharingService.Instance.ProcessedImage);
+            }
         }
 
         // 加载图像文件
@@ -94,21 +59,17 @@ namespace EndoscopyAI.Views
             {
                 try
                 {
-                    imagePath = openFileDialog.FileName;
-                    _currentImage = _imageDisplay.LoadImageFromFile(openFileDialog.FileName);// 加载图像并存储到 _currentImage
-                    _originImage = _currentImage.Clone(); // 克隆原始图像
+                    DataSharingService.Instance.Patient.ImagePath = openFileDialog.FileName;
+                    DataSharingService.Instance.ProcessedImage = _imageDisplay.LoadImageFromFile(DataSharingService.Instance.Patient.ImagePath);// 加载图像并存储到 _currentImage
 
                     // 在 Image 控件中显示图像
-                    _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
+                    _imageDisplay.DisplayImage(ImageDisplay, DataSharingService.Instance.ProcessedImage);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"加载图像时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
-
-            // 更新共享服务中的图像路径
-            DataSharingService.Instance.ImagePath = imagePath;
         }
 
         public Mat ConvertBitmapSourceToMat(BitmapSource bitmapSource)
@@ -121,12 +82,8 @@ namespace EndoscopyAI.Views
         // 保存图像文件
         private void SaveFile(object sender, RoutedEventArgs e)
         {
-            // 更新现有数据
-            imagePath = DataSharingService.Instance.ImagePath;
-            var bitmap_temp = DataSharingService.Instance.ProcessedImage;
-            _currentImage = ConvertBitmapSourceToMat(bitmap_temp as BitmapSource);
 
-            if (_currentImage == null)
+            if (DataSharingService.Instance.ProcessedImage == null)
             {
                 MessageBox.Show("没有图像可保存", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -143,8 +100,8 @@ namespace EndoscopyAI.Views
                 try
                 {
                     // 保存当前图像
-                    bool success = _imageDisplay.ImageSave(_currentImage, saveFileDialog.FileName);
-                    DataSharingService.Instance.ImagePath = saveFileDialog.FileName;
+                    bool success = _imageDisplay.ImageSave(DataSharingService.Instance.ProcessedImage, saveFileDialog.FileName);
+                    DataSharingService.Instance.Patient.ImagePath = saveFileDialog.FileName;
                     if (success)
                     {
                         MessageBox.Show("图像保存成功", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -163,11 +120,11 @@ namespace EndoscopyAI.Views
 
         private void ImgReset(object sender, RoutedEventArgs e)
         {
-            if (_originImage != null)
+            if (DataSharingService.Instance.Patient.ImagePath != null)
             {
-                _currentImage = _originImage.Clone(); // 克隆原始图像
-                DataSharingService.Instance.ProcessedImage = _currentImage;
-                _imageDisplay.DisplayImage(ImageDisplay, _currentImage);
+                // 重新导入原始图像
+                DataSharingService.Instance.ProcessedImage = _imageDisplay.LoadImageFromFile(DataSharingService.Instance.Patient.ImagePath);
+                _imageDisplay.DisplayImage(ImageDisplay, DataSharingService.Instance.ProcessedImage);
             }
             else
             {

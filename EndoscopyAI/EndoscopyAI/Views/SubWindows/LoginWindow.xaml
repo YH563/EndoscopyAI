@@ -61,7 +61,7 @@
         <Grid Grid.Column="0" Background="White">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0">
                 <!-- Logo 预留位置 -->
-                <Image Source="/Sources/logo_inverted.png" Width="500" Height="200" Margin="0,0,0,0"/>
+                <Image Source="/Sources/logo_inverted.png" Width="500" Height="200" Margin="20,0,0,0"/>
                 <!-- <Border Width="110" Height="110" Background="White" CornerRadius="55" Margin="0,0,30,0" /> -->
                 <!-- 文字上下排列 -->
                 
@@ -88,10 +88,10 @@
                            FontWeight="Bold"/>
                     </Border>
 
-                    <TextBlock Text="工号 | ID:" Margin="30,10,0,5" FontWeight="Bold"/>
+                    <TextBlock Text="工号 | ID:" Margin="30,10,0,5" FontWeight="Bold" FontSize="15"/>
                     <TextBox x:Name="UserIdTextBox" Height="35" FontSize="16" Margin="30,0,30,5" />
 
-                    <TextBlock Text="密码 | Password:" Margin="30,20,0,5" FontWeight="Bold"/>
+                    <TextBlock Text="密码 | Password:" Margin="30,20,0,5" FontWeight="Bold" FontSize="15"/>
                     <PasswordBox x:Name="PasswordBox" Height="35" FontSize="16" Margin="30,0,30,5" />
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

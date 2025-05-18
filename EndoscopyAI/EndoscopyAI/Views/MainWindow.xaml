@@ -126,7 +126,7 @@
 
             <!-- 左侧功能按钮 -->
             <materialDesign:Card Grid.Column="0" Margin="10" Padding="5">
-                <local:AIRecommendationControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Loaded="AIRecommendationControl_Loaded"/>
+                <local:AIRecommendationControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </materialDesign:Card>
 
             <!-- 中间主区域（可扩展） -->

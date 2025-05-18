@@ -27,6 +27,12 @@
                         <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
                     </Setter.Value>
                 </Setter>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="10"/>
+                <Setter Property="Background" Value="#dcf6eb"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <!-- 高光描边 -->
+                <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+                <Setter Property="BorderThickness" Value="2"/>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="RenderTransform">
@@ -34,9 +40,12 @@
                                 <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
                             </Setter.Value>
                         </Setter>
+                        <!-- 鼠标悬停时高光更明显 -->
+                        <Setter Property="BorderBrush" Value="#FFFDEB3B"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>
+
             <Style TargetType="TextBox">
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="Padding" Value="5"/>
@@ -85,8 +94,7 @@
                             <!-- 使用 ProgressBar 原生逻辑自动计算宽度 -->
                             <Grid>
                                 <!-- 背景边框 -->
-                                <Border BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
+                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                             Background="{TemplateBinding Background}"
                             CornerRadius="3"/>
 

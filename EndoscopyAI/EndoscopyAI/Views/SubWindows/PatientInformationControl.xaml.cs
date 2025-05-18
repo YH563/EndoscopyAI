@@ -24,36 +24,68 @@ namespace EndoscopyAI.Views.SubWindows
     /// </summary>
     public partial class PatientInformationControl : UserControl
     {
-        Patient patient = new Patient();  // 病人信息实例
+        Patient? patient = new Patient();  // 病人信息实例
         IPatientInformation patientInformation = new PatientInformation();  // 病人信息接口实例
 
         public PatientInformationControl()
         {
             InitializeComponent();
+            patient = patientInformation.GetLatestPatientInformation();
+            ShowPatientInformation();
+            DataSharingService.Instance.PatientChanged += OnPatientDataChanged;
         }
 
-        // 保存病人信息
+        // 展示病人信息
+        private void ShowPatientInformation()
+        {
+            if (patient != null)
+            {
+                PatientID.Text = patient.ID.ToString();
+                PatientName.Text = patient.Name;
+                PatientAge.Text = patient.Age.ToString();
+                PatientGender.Text = patient.Gender;
+                PatientNumberID.Text = patient.NumberID;
+                PatientContact.Text = patient.Contact;
+                PatientVisitTime.Text = patient.VisitTime;
+                PatientMedicalHistory.Text = patient.MedicalHistory;
+                PatientChiefComplaint.Text = patient.ChiefComplaint;
+                PatientDiagnosisResult.Text = patient.DiagnosisResult;
+                PatientTreatmentPlan.Text = patient.TreatmentPlan;
+            }
+        }
+
+        // 确认按钮点击事件
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
-            patient.Name = stringName.Text;
-            patient.Age = string.IsNullOrEmpty(intAge.Text) ? 0 : int.Parse(intAge.Text);
-            if (option1.IsChecked == true)
+            if (patient != null)
             {
-                patient.Gender = option1.Content?.ToString() ?? "";
-            }
-            else if (option2.IsChecked == true)
-            {
-                patient.Gender = option2.Content?.ToString() ?? "";
-            }
-            patient.Contact = stringContact.Text;
-            patient.NumberID = stringNumberID.Text;
-            patient.DiagnosisResult = DataSharingService.Instance.DiagnosisResult;
-            patient.ConfidenceLevel = DataSharingService.Instance.Confidence;
-            patient.ImagePath = DataSharingService.Instance.ImagePath;
-            //patient.HeatMapPath = DataSharingService.Instance.HeatMapPath;
+                // 医生输入信息
+                patient.MedicalHistory = PatientMedicalHistory.Text;
+                patient.ChiefComplaint = PatientChiefComplaint.Text;
+                patient.DiagnosisResult = PatientDiagnosisResult.Text;
+                patient.TreatmentPlan = PatientTreatmentPlan.Text;
 
-            patientInformation.UpdatePatient(patient);
+                patientInformation.UpdatePatientInformation(patient);
+            }
+            else
+            {
+                MessageBox.Show("请先选择病人信息", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
         }
 
+        // 查找按钮点击事件
+        private void Search_Click(object sender, RoutedEventArgs e)
+        {
+            SearchPatientInformationWindow searchPatientInformationWindow = new SearchPatientInformationWindow();
+            searchPatientInformationWindow.Show();
+        }
+
+        // 病人信息变更事件
+        private void OnPatientDataChanged(object? sender, EventArgs e)
+        {
+            patient = DataSharingService.Instance.Patient;
+            ShowPatientInformation();
+        }
     }
 }

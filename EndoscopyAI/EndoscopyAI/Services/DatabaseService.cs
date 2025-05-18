@@ -40,7 +40,7 @@ namespace EndoscopyAI.Services
         public string TreatmentPlan { get; set; }  // 治疗方案
         
         // 默认构造函数
-        Patient() 
+        public Patient() 
         { 
             ID = 0;
             NumberID = "";
@@ -97,6 +97,13 @@ namespace EndoscopyAI.Services
                 // 病人ID自动递增
                 int maxId = _db.Patients.Any() ? _db.Patients.Max(p => p.ID) : 0;
                 patient.ID = maxId + 1;
+
+                // 获取时间信息
+                DateTime now = DateTime.Now;
+                DateTime date = DateTime.Today;
+                patient.VisitTime = now.ToString("yyyy-MM-dd HH:mm:ss");
+                patient.VisitDate = date.ToString("yyyy-MM-dd");
+
                 _db.Patients.Add(patient);
                 _db.SaveChanges();
             }
@@ -106,13 +113,25 @@ namespace EndoscopyAI.Services
             }
         }
 
-        // 根据名字获取当天看病的病人信息
-        public Patient? GetPatient(string name)
+        // 获取所有病人信息
+        public List<Patient> GetPatients()
         {
-            DateTime currentDate = DateTime.Today;
-            string date = currentDate.ToString("yyyy-MM-dd");
-            var patient = _db.Patients.Where(p => p.Name == name && p.VisitDate == date).FirstOrDefault();
-            return patient;
+            List<Patient> patients = _db.Patients.ToList();
+            return patients;
+        }
+
+        // 获取对应名字的所有病人信息
+        public List<Patient>? GetPatientsByName(string name)
+        {
+            List<Patient> patients = _db.Patients.Where(p => p.Name == name).OrderByDescending(p => p.ID).ToList();
+            return patients;
+        }
+
+        // 获取对应身份证号/医保号的所有病人信息
+        public List<Patient>? GetPatientsByNumberID(string numberID)
+        {
+            List<Patient> patients = _db.Patients.Where(p => p.NumberID == numberID).OrderByDescending(p => p.ID).ToList();
+            return patients;
         }
 
         // 根据身份证号/医保号获取病人信息
@@ -122,15 +141,36 @@ namespace EndoscopyAI.Services
             return patient;
         }
 
+        // 获取最近的病人信息
+        public Patient? GetLatestPatient()
+        {
+            var patient = _db.Patients.OrderByDescending(p => p.ID).FirstOrDefault();
+            return patient;
+        }
+
+        // 按照身份证号获取最近的病人信息
+        public Patient? GetLatestPatient(string numberId)
+        {
+            var patient = _db.Patients.Where(p => p.NumberID == numberId).OrderByDescending(p => p.ID).FirstOrDefault();
+            return patient;
+        }
+
         // 修改病人信息
         public void UpdatePatient(Patient updatedPatient)
         {
             try
             {
-                var existing = GetPatientByNumberID(updatedPatient.NumberID);
+                var existing = GetLatestPatient(updatedPatient.NumberID);
                 if (existing != null)
                 {
-                    existing = updatedPatient;
+                    existing.MedicalHistory = updatedPatient.MedicalHistory;
+                    existing.ChiefComplaint = updatedPatient.ChiefComplaint;
+                    existing.ImagePath = updatedPatient.ImagePath;
+                    existing.AIResult = updatedPatient.AIResult;
+                    existing.AIConfidenceLevel = updatedPatient.AIConfidenceLevel;
+                    existing.DiagnosisResult = updatedPatient.DiagnosisResult;
+                    existing.TreatmentPlan = updatedPatient.TreatmentPlan;
+
                     _db.SaveChanges();
                 }
                 else
@@ -146,18 +186,10 @@ namespace EndoscopyAI.Services
             }
         }
 
-        // 获取当天所有病人姓名
-        public List<string> GetAllPatientNames()
-        {
-            DateTime currentDate = DateTime.Today;
-            string date = currentDate.ToString("yyyy-MM-dd");
-            return _db.Patients.Where(p => p.VisitDate == date).Select(p => p.Name).ToList();
-        }
-
         // 删除病人
-        public void DeletePatient(int patientId)
+        public void DeletePatient(int ID)
         {
-            var patient = _db.Patients.Find(patientId);
+            var patient = _db.Patients.FirstOrDefault(p => p.ID == ID);
             if (patient != null)
             {
                 _db.Patients.Remove(patient);
@@ -170,6 +202,7 @@ namespace EndoscopyAI.Services
     // 医生信息
     public class Doctor
     {
+        [Key]
         public string jobNumber { get; set; }  // 工号
         public string name { get; set; }  // 姓名*
         public string password { get; set; }  // 密码
@@ -238,18 +271,18 @@ namespace EndoscopyAI.Services
     // 创建全局可访问的数据库服务实例
     public static class GlobalDbService
     {
-        private static readonly PatientDbContext _dbContext;
+        private static readonly PatientDbContext _patientDbContext;
         private static readonly DoctorDbContext _doctorDbContext;
 
         static GlobalDbService()
         {
-            _dbContext = new PatientDbContext();
-            _dbContext.Database.EnsureCreated();
+            _patientDbContext = new PatientDbContext();
+            _patientDbContext.Database.EnsureCreated();
             _doctorDbContext = new DoctorDbContext();
             _doctorDbContext.Database.EnsureCreated();
         }
 
-        public static PatientDbService DbService => new PatientDbService(_dbContext);
+        public static PatientDbService PatientDbService => new PatientDbService(_patientDbContext);
         public static DoctorDbService DoctorDbService => new DoctorDbService(_doctorDbContext);
     }
 }

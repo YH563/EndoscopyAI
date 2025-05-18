@@ -35,208 +35,221 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            <Style TargetType="TextBox">
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="Padding" Value="5"/>
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="BorderBrush" Value="Gray"/>
+
+            <Style TargetType="Border">
+                <Setter Property="BorderBrush" Value="#caccce"/>
                 <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="Background" Value="White"/>
-                <Setter Property="Foreground" Value="Black"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            </Style>
+            <Style x:Key="NoFocusTextBox" TargetType="TextBox">
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
-                            <Border x:Name="border" 
-                        BorderBrush="{TemplateBinding BorderBrush}" 
-                        BorderThickness="{TemplateBinding BorderThickness}" 
-                        Background="{TemplateBinding Background}" 
-                        SnapsToDevicePixels="True">
-                                <ScrollViewer x:Name="PART_ContentHost" 
-                                  Focusable="false" 
-                                  HorizontalScrollBarVisibility="Hidden" 
-                                  VerticalScrollBarVisibility="Hidden"/>
+                            <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
                             </Border>
                             <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="border" Property="BorderBrush" Value="Blue"/>
-                                </Trigger>
-                                <Trigger Property="IsKeyboardFocused" Value="True">
-                                    <Setter TargetName="border" Property="BorderBrush" Value="DarkBlue"/>
-                                    <Setter TargetName="border" Property="BorderThickness" Value="2"/>
-                                </Trigger>
+                                <!-- 移除焦点触发器 -->
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
-            <Style TargetType="ProgressBar">
-                <Setter Property="Foreground" Value="Purple"/>
-                <!-- 填充色设为紫色 -->
-                <Setter Property="Background" Value="LightGray"/>
-                <Setter Property="BorderBrush" Value="Gray"/>
-                <Setter Property="BorderThickness" Value="2"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ProgressBar">
-                            <!-- 使用 ProgressBar 原生逻辑自动计算宽度 -->
-                            <Grid>
-                                <!-- 背景边框 -->
-                                <Border BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            Background="{TemplateBinding Background}"
-                            CornerRadius="3"/>
-
-                                <!-- 填充部分（绑定到原生逻辑的PART_Indicator） -->
-                                <Rectangle x:Name="PART_Indicator"
-                               Fill="{TemplateBinding Foreground}"
-                               HorizontalAlignment="Left"
-                               RadiusX="3" RadiusY="3"/>
-                            </Grid>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition />
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Height="1" Background="Black" VerticalAlignment="Top" Margin="5,5,5,5"/>
-        <TextBlock Grid.Row="0" Text="患者信息" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Margin="8"/>
-        <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Label Content="姓名" FontSize="14" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="stringName"/>
-                    </Grid>
-                    <Grid Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Label Content="年龄" FontSize="14" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="intAge" />
-                    </Grid>
-                </Grid>
-                <Grid Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <Label Content="性别" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                    <Grid Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <RadioButton Grid.Column="0" x:Name="option1" GroupName="Gender" Content="男" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <RadioButton Grid.Column="1" x:Name="option2"  GroupName="Gender" Content="女" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                    </Grid>
-                </Grid>
-            </Grid>
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-               
-            </Grid>
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-            </Grid>
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Label Content="联系方式" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="stringContact" />
-            </Grid>
-            <Grid Grid.Row="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Label Content="身份证号/医保号" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                <TextBox Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" x:Name="stringNumberID"  />
-            </Grid>
-        </Grid>
-        <Grid Grid.Row="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Height="1" Background="Black" VerticalAlignment="Top" Margin="5,5,5,5"/>
-            <TextBlock Grid.Row="0" Text="智能诊断" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Margin="8"/>
-            <Grid Grid.Row="1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Row="0" Content="诊断结果" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="stringDiagnosisResult" 
-                                   Text="{Binding Source={x:Static custom:DataSharingService.Instance}, Path=DiagnosisResult}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
-                    </Grid>
-                    <Grid Grid.Column="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Row="0" Content="置信度" Grid.Column="0" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="doubleConfidenceLevel" 
-                                  Text="{Binding Source={x:Static custom:DataSharingService.Instance}, Path=ConfidenceDisplay}"  
-                                  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
-                    </Grid>
-                </Grid>
-            </Grid>
-            <Grid Grid.Row="2">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Text="患者信息" FontSize="20" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
+            <TextBlock Text="基本信息" FontSize="18" FontWeight="Bold" Margin="10"/>
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition />
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="病灶分割" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Margin="8"/>
-                <Image Grid.Row="1" Source="{Binding Source={x:Static custom:DataSharingService.Instance}, Path=SegmentationImage}" 
-                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
+                    <Grid >
+                        <TextBlock Text="诊断号:" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1">
+                    <Grid >
+                        <TextBlock x:Name="PatientID" VerticalAlignment="Center" Margin="5" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="2" Margin="0,0,0,0">
+                    <Grid >
+                        <TextBlock Text="姓名：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="3" Margin="0, 0, 10, 0">
+                    <Grid >
+                        <TextBlock x:Name="PatientName" VerticalAlignment="Center" Margin="5" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Margin="10,0,0,0">
+                    <Grid >
+                        <TextBlock Text="年龄：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1">
+                    <Grid >
+                        <TextBlock x:Name="PatientAge" VerticalAlignment="Center" Margin="5" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="2">
+                    <Grid >
+                        <TextBlock Text="性别：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="3" Margin="0, 0, 10, 0">
+                    <Grid >
+                        <TextBlock x:Name="PatientGender" VerticalAlignment="Center" Margin="5" FontSize="15"/>
+                    </Grid>
+                </Border>
+
             </Grid>
-        </Grid>
-        <Button Grid.Row="3" Content="提交" HorizontalAlignment="Center" VerticalAlignment="Top" Width="100" Height="36" Click="Confirm_Click"/>
-    </Grid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
+                    <Grid >
+                        <TextBlock Text="证件号码：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
+                    <Grid >
+                        <TextBlock x:Name="PatientNumberID" VerticalAlignment="Center" Margin="5" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Margin="10,0,0,0">
+                    <Grid>
+                        <TextBlock Text="联系方式：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="1" Margin="0,0,10,0">
+                    <Grid >
+                        <TextBlock x:Name="PatientContact" VerticalAlignment="Center" Margin="5" FontSize="15"/>
+                    </Grid>
+                </Border>
+            </Grid>
+            <TextBlock Text="问诊信息" FontSize="18" FontWeight="Bold" Margin="10"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
+                    <Grid >
+                        <TextBlock Text="所属科室：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" >
+                    <Grid >
+                        <TextBlock Text="消化内科" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="2">
+                    <Grid >
+                        <TextBlock Text="就诊时间：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="3" Margin="0,0,10,0">
+                    <Grid >
+                        <TextBlock x:Name="PatientVisitTime" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
+                    <Grid >
+                        <TextBlock Text="既往病史：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
+                    <Grid >
+                        <TextBox x:Name="PatientMedicalHistory" Margin="5" BorderThickness="0" FontSize="15"/>
+                    </Grid>
+                </Border>
+            </Grid>
+            <TextBlock Text="诊断记录" FontSize="18" FontWeight="Bold" Margin="10"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
+                    <Grid >
+                        <TextBlock Text="智能诊断结果：" VerticalAlignment="Center" Margin="10" FontSize="15" />
+                    </Grid>
+                </Border>
+                <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
+                    <Grid>
+                        <TextBlock Text="" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+            </Grid>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="100"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="100"/>
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" Grid.Column="0" Margin="10,0,10,0">
+                    <Grid >
+                        <TextBlock Text="主诉" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="1" Grid.Column="0" Margin="10,0,10,0">
+                    <TextBox x:Name="PatientChiefComplaint" Margin="5" BorderThickness="0" FontSize="15" AcceptsReturn="True" TextWrapping="Wrap"/>
+                </Border>
+                <Border Grid.Row="2" Grid.Column="0" Margin="10,0,10,0">
+                    <Grid >
+                        <TextBlock Text="诊断结果" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="3" Grid.Column="0" Margin="10,0,10,0">
+                    <TextBox x:Name="PatientDiagnosisResult" Margin="5" BorderThickness="0" FontSize="15" AcceptsReturn="True" TextWrapping="Wrap"/>
+                </Border>
+                <Border Grid.Row="4" Grid.Column="0" Margin="10,0,10,0">
+                    <Grid >
+                        <TextBlock Text="治疗方案" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Row="5" Grid.Column="0" Margin="10,0,10,0">
+                    <TextBox x:Name="PatientTreatmentPlan" Margin="5" BorderThickness="0" FontSize="15" AcceptsReturn="True" TextWrapping="Wrap"/>
+                </Border>
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="Confirm" Grid.Column="0" Content="保存" HorizontalAlignment="Center" Margin="10" FontSize="15" Click="Confirm_Click" Width="90" Height="54"/>
+                <Button x:Name="Search" Grid.Column="1" Content="查找" HorizontalAlignment="Center" Margin="10" FontSize="15" Click="Search_Click" Width="90" Height="54"/>
+            </Grid>
+            
+        </StackPanel>
+
+
+    </ScrollViewer>
 </UserControl>

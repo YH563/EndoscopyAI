@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace EndoscopyAI.ViewModels.SubViewModels
 {
-    internal class AIRecommendationViewModel
+    interface IAIRecommendation
     {
+
+    }
+
+    class AIRecommendation : IAIRecommendation
+    {
+
     }
 }

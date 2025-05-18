@@ -7,76 +7,40 @@ using System.Windows.Media.Imaging;
 namespace EndoscopyAI.Services
 {
     // 单例用于在应用程序中共享数据
-    public sealed class DataSharingService : INotifyPropertyChanged
+    public sealed class DataSharingService
     {
         // 单例实例
-        private static readonly DataSharingService _instance = new DataSharingService();
-        public static DataSharingService Instance => _instance;
+        private static readonly Lazy<DataSharingService> _instance =
+        new Lazy<DataSharingService>(() => new DataSharingService());
+
+        public static DataSharingService Instance => _instance.Value;
 
         // 私有构造函数防止外部实例化
-        private DataSharingService() { }
+        private DataSharingService() 
+        {
+            _patient = new Patient();
+            PatientChanged = delegate { };
+        }
 
         // 不需要实时显示的数据
-        public string? ImagePath { get; set; }
+        public string ImagePath { get; set; } = "";
 
-        // 诊断结果（支持外部赋值）
-        private string _diagnosisResult = string.Empty;
-        public string DiagnosisResult
+        // 共享病人信息
+        private Patient? _patient;
+        public Patient? Patient
         {
-            get => _diagnosisResult;
+            get => _patient;
             set
             {
-                if (_diagnosisResult != value)
+                if (_patient != value)
                 {
-                    _diagnosisResult = value;
-                    OnPropertyChanged();
+                    _patient = value;
+                    PatientChanged.Invoke(this, EventArgs.Empty);
                 }
             }
         }
 
-        // 置信度相关
-        private float _confidenceLevel;
-        public float Confidence
-        {
-            get => _confidenceLevel;
-            set
-            {
-                if (!_confidenceLevel.Equals(value))
-                {
-                    _confidenceLevel = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(ConfidenceDisplay));
-                }
-            }
-        }
-
-        // 医生姓名
-        private string _doctorName = string.Empty;
-        public string DoctorName
-        {
-            get => _doctorName;
-            set 
-            { 
-                if (_doctorName != value)
-                {
-                    _doctorName = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        // 格式化显示的置信度
-        public string ConfidenceDisplay => $"{_confidenceLevel:P2}";
-
-        // 实现属性变更通知
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string? name = null)
-        {
-            // 确保在UI线程更新
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-            });
-        }
+        // 委托事件
+        public event EventHandler PatientChanged;
     }
 }

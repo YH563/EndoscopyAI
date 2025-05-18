@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:materialDesignIcons="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
-        xmlns:local="clr-namespace:EndoscopyAI.Views"
+        xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows"
         mc:Ignorable="d"
         Title="内窥镜辅助诊断系统" Height="700" Width="1250"
         WindowStartupLocation="CenterScreen">
@@ -98,7 +98,7 @@
                 <TextBlock Text="内窥镜辅助诊断系统" FontSize="16" FontWeight="Bold" Foreground="White" />
                 <Button Content="打开" Width="80" Margin="20,0,5,0" FontSize="10" Click="LoadFile"/>
                 <Button Content="还原" Width="80" Margin="5" FontSize="10" Click="ImgReset"/>
-                <Button Content="保存" Width="80" Margin="5" FontSize="10" Click="SaveFile"/>
+                <Button Content="保存图像" Width="80" Margin="5" FontSize="10" Click="SaveFile"/>
                 <Button Content="帮助" Width="80" Margin="5" FontSize="10"/>
             </StackPanel>
         </materialDesign:ColorZone>
@@ -112,67 +112,8 @@
             </Grid.ColumnDefinitions>
 
             <!-- 左侧功能按钮 -->
-            <materialDesign:Card Grid.Column="0" Margin="10, 22" Padding="5">
-                <StackPanel x:Name="ButtonPanel" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
-                    <Button Height="50" Click="ImgEnhance">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesignIcons:PackIcon Kind="ImageFilter" Margin="0,3,5,0"/>
-                                <TextBlock Text="图像增强"/>
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
-                    <Button Height="50" Click="ImgDenoise">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesignIcons:PackIcon Kind="ImageFilterNone" Margin="0,3,5,0" />
-                                <TextBlock Text="图像降噪" />
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
-                    <Button Height="50" Click="ImgShapen">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesignIcons:PackIcon Kind="Flare" Margin="0,3,5,0" />
-                                <TextBlock Text="图像锐化" />
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
-                    <Button Height="50" Click="LightAugest">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesignIcons:PackIcon Kind="Brightness7" Margin="0,3,5,0" />
-                                <TextBlock Text="照度调节" />
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
-                    <!-- 滑动条容器 -->
-                    <StackPanel Style="{StaticResource SliderContainerStyle}">
-                        <Slider x:Name="BalanceSlider"
-                            Minimum="0"
-                            Maximum="100"
-                            ValueChanged="BalanceSlider_ValueChanged" 
-                            Margin="0,10,0,0"
-                            Width="200"
-                        />
-                    </StackPanel>
-                    <Button Height="50" Click="ClassPredict">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesignIcons:PackIcon Kind="Spa" Margin="0,5,5,0" />
-                                <TextBlock Text="分类预测" />
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
-                    <Button Height="50" Click="SegmentPredict">
-                        <Button.Content>
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesignIcons:PackIcon Kind="Grid" Margin="0,5,5,0" />
-                                <TextBlock Text="分割预测" />
-                            </StackPanel>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
+            <materialDesign:Card Grid.Column="0" Margin="10" Padding="5">
+                <local:AIRecommendationControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             </materialDesign:Card>
 
             <!-- 中间主区域（可扩展） -->

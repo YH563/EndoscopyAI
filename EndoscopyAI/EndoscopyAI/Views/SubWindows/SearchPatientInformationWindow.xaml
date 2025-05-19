@@ -1,0 +1,197 @@
+﻿<Window x:Class="EndoscopyAI.Views.SubWindows.SearchPatientInformationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows"
+        mc:Ignorable="d"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="患者信息查询" Height="600" Width="900"
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Green.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <!-- 自定义按钮样式 -->
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Padding" Value="10" />
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="10"/>
+                <Setter Property="Background" Value="#dcf6eb"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <!-- 高光描边 -->
+                <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+                            </Setter.Value>
+                        </Setter>
+                        <!-- 鼠标悬停时高光更明显 -->
+                        <Setter Property="BorderBrush" Value="#FFFDEB3B"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- 自定义 TextBlock 样式 -->
+            <Style TargetType="TextBlock">
+                <Setter Property="Margin" Value="10,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="18" />
+            </Style>
+
+            <Style TargetType="Border">
+                <Setter Property="BorderBrush" Value="#caccce"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+            <Style x:Key="NoFocusTextBox" TargetType="TextBox">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <!-- 移除焦点触发器 -->
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="20,20,20,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Label Content="患者信息查询" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox x:Name="searchTypeComboBox" Grid.Column="0" Width="150" Margin="10" SelectedIndex="0">
+                <ComboBoxItem Content="姓名"/>
+                <ComboBoxItem Content="身份证号/医保号"/>
+            </ComboBox>
+            <TextBox x:Name="searchInputTextBox" Grid.Column="1" Width="200" Margin="10" VerticalAlignment="Center"/>
+            <Button x:Name="searchButton" Grid.Column="2" Width="60" Height="40" Margin="10" Content="查询" Click="Search_Click"/>
+            <Grid Grid.Column="3">
+                <Button x:Name="addPatientButton" Width="100" Height="40" Margin="10" Content="添加患者" HorizontalAlignment="Right" Click="Add_Click"/>
+            </Grid>
+        </Grid>
+        <Border Grid.Row="2" Margin="5,5,5,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0">
+                    <Label Content="诊断号" HorizontalAlignment="Center" Margin="5"/>
+                </Border>
+                <Border Grid.Column="1">
+                    <Label Content="姓名" HorizontalAlignment="Center" Margin="5"/>
+                </Border>
+                <Border Grid.Column="2">
+                    <Label Content="性别" HorizontalAlignment="Center" Margin="5"/>
+                </Border>
+                <Border Grid.Column="3">
+                    <Label Content="年龄" HorizontalAlignment="Center" Margin="5"/>
+                </Border>
+                <Border Grid.Column="4">
+                    <Label Content="就诊日期" HorizontalAlignment="Center" Margin="5"/>
+                </Border>
+                <Border Grid.Column="5">
+                    <Label Content="身份证号/医保号" HorizontalAlignment="Center" Margin="5"/>
+                </Border>
+                <Border Grid.Column="6">
+                    <Label Content="操作" HorizontalAlignment="Center" Margin="5"/>
+                </Border>
+            </Grid>
+        </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="3" Margin="5,0,5,0">
+            <!-- ItemsControl用于动态展示项目 -->
+            <ItemsControl x:Name="PatientsItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <!-- 单个病人信息的卡片样式 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="300"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0">
+                                <Grid>
+                                    <TextBlock Text="{Binding ID}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                </Grid>
+                                
+                            </Border>
+                            <Border Grid.Column="1">
+                                <Grid>
+                                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Column="2">
+                                <Grid>
+                                    <TextBlock Text="{Binding Gender}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Column="3">
+                                <Grid>
+                                    <TextBlock Text="{Binding Age}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Column="4">
+                                <Grid>
+                                    <TextBlock Text="{Binding VisitDate}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Column="5">
+                                <Grid>
+                                    <TextBlock Text="{Binding NumberID}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                </Grid>
+                            </Border>
+                            <Border Grid.Column="6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" x:Name="confirmButton" Content="查看" Margin="5" FontSize="10" Click="Confirm_Click"/>
+                                    <Button Grid.Column="1" x:Name="deleteButton" Content="删除" Margin="5" FontSize="10" Click="Delete_Click"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</Window>

@@ -1,16 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using EndoscopyAI.ViewModels.SubViewModels;
 
 namespace EndoscopyAI.Views.SubWindows
 {
@@ -19,9 +8,35 @@ namespace EndoscopyAI.Views.SubWindows
     /// </summary>
     public partial class LoginWindow : Window
     {
+        ILoginViewModel loginViewModel = new LoginViewModel();  // 登录接口实例
+
         public LoginWindow()
         {
             InitializeComponent();
+        }
+
+        // 登录按钮点击事件
+        private void Login_Click(object sender, RoutedEventArgs e)
+        {
+            string userId = UserIdTextBox.Text.Trim();
+            string password = PasswordBox.Password;
+
+            if (loginViewModel.CheckLogin(userId, password))
+            {
+                // 显示主窗口
+                var mainWindow = new MainWindow();
+                mainWindow.Show();
+
+                // 关闭登录窗口
+                this.Close();
+            }
+        }
+
+
+        // 注册按钮点击事件
+        private void Register_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("注册功能暂未开放。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

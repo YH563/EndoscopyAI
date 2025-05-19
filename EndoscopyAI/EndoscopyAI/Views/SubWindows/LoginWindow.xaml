@@ -3,10 +3,106 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="LoginWindow" Height="450" Width="800">
+        Title="登录" Height="450" Width="900" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Green.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <!-- 自定义按钮样式 -->
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Padding" Value="10" />
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="10"/>
+                <Setter Property="Background" Value="#dcf6eb"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <!-- 高光描边 -->
+                <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+                            </Setter.Value>
+                        </Setter>
+                        <!-- 鼠标悬停时高光更明显 -->
+                        <Setter Property="BorderBrush" Value="#FFFDEB3B"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- 自定义 TextBlock 样式 -->
+            <Style TargetType="TextBlock">
+                <Setter Property="Margin" Value="10,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="18" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
-        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6*" />
+            <ColumnDefinition Width="4*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧紫色区域 -->
+        <Grid Grid.Column="0" Background="White">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0">
+                <!-- Logo 预留位置 -->
+                <Image Source="/Sources/logo_inverted.png" Width="500" Height="200" Margin="20,0,0,0"/>
+                <!-- <Border Width="110" Height="110" Background="White" CornerRadius="55" Margin="0,0,30,0" /> -->
+                <!-- 文字上下排列 -->
+
+            </StackPanel>
+        </Grid>
+
+        <!-- 右侧表单区域 -->
+        <Grid Grid.Column="1" Background="Transparent">
+            <Border 
+        Background="White"
+        CornerRadius="24"
+        Margin="40"
+        Effect="{DynamicResource MaterialDesignShadowDepth2}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="280" Margin="0,0">
+                    <!-- WELCOME! 浮窗头部 -->
+                    <Border 
+                CornerRadius="24"
+                Margin="0,0,0,0"
+                Padding="0,16">
+                        <TextBlock Text="WELCOME!" 
+                           FontSize="30" 
+                           HorizontalAlignment="Center" 
+                           Foreground="#1ba58c" 
+                           FontWeight="Bold"/>
+                    </Border>
+
+                    <TextBlock Text="工号 | ID:" Margin="30,10,0,5" FontWeight="Bold" FontSize="15"/>
+                    <TextBox x:Name="UserIdTextBox" Height="35" FontSize="16" Margin="30,0,30,5" />
+
+                    <TextBlock Text="密码 | Password:" Margin="30,20,0,5" FontWeight="Bold" FontSize="15"/>
+                    <PasswordBox x:Name="PasswordBox" Height="35" FontSize="16" Margin="30,0,30,5" />
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Button Content="登录" Width="110" Height="38" Margin="0,0,10,0" Click="Login_Click"/>
+                        <Button Content="注册" Width="110" Height="38" Click="Register_Click"/>
+                    </StackPanel>
+
+                    <TextBlock Text="yimingchu009@gmail.com" Margin="0,20,0,5" FontSize="10" HorizontalAlignment="Center" Foreground="#888" FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
     </Grid>
 </Window>

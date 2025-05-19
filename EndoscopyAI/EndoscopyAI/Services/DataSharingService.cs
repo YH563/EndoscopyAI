@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -7,77 +8,119 @@ using System.Windows.Media.Imaging;
 namespace EndoscopyAI.Services
 {
     // 单例用于在应用程序中共享数据
-    public sealed class DataSharingService : INotifyPropertyChanged
+    public sealed class DataSharingService
     {
         // 单例实例
-        private static readonly DataSharingService _instance = new DataSharingService();
-        public static DataSharingService Instance => _instance;
+        private static readonly Lazy<DataSharingService> _instance =
+        new Lazy<DataSharingService>(() => new DataSharingService());
+
+        public static DataSharingService Instance => _instance.Value;
 
         // 私有构造函数防止外部实例化
-        private DataSharingService() { }
-
-        // 不需要实时显示的数据
-        public string? ImagePath { get; set; }
-        //public string? HeatMapPath { get; set; }
-
-        // 诊断结果（支持外部赋值）
-        private string _diagnosisResult = string.Empty;
-        public string DiagnosisResult
+        private DataSharingService()
         {
-            get => _diagnosisResult;
+            _patient = new Patient();
+            PatientChanged = delegate { };
+            ImageChanged = delegate { };
+            ImagePathChanged = delegate { };
+            ClassificationResultChanged = delegate { };
+            ConfidenceChanged = delegate { };
+        }
+
+        // 共享病人信息
+        private Patient? _patient;
+        public Patient? Patient
+        {
+            get => _patient;
             set
             {
-                if (_diagnosisResult != value)
+                if (_patient != value)
                 {
-                    _diagnosisResult = value;
-                    OnPropertyChanged();
+                    _patient = value;
+                    PatientChanged.Invoke(this, EventArgs.Empty);
                 }
             }
         }
 
-        // 置信度相关
-        private float _confidenceLevel;
+        // 共享图像路径信息
+        private string? _imagePath;
+        public string? ImagePath
+        {
+            get => _imagePath;
+            set
+            {
+                if (_imagePath != value)
+                {
+                    _imagePath = value;
+                    ImagePathChanged.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        // 共享分类结果
+        private string? _classificationResult;
+        public string? ClassificationResult
+        {
+            get => _classificationResult;
+            set
+            {
+                if (_classificationResult != value)
+                {
+                    _classificationResult = value;
+                    ClassificationResultChanged.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        // 共享分类置信度
+        private float _confidence;
         public float Confidence
         {
-            get => _confidenceLevel;
+            get => _confidence;
             set
             {
-                if (!_confidenceLevel.Equals(value))
+                if (_confidence != value)
                 {
-                    _confidenceLevel = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(ConfidenceDisplay));
+                    _confidence = value;
+                    ConfidenceChanged.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+       
+        private Mat? _originImage;
+        public Mat? OriginImage
+        {
+            get => _originImage;
+            set
+            {
+                if (_originImage != value)
+                {
+                    _originImage?.Dispose(); // 释放旧资源
+                    _originImage = value?.Clone(); // 建议使用克隆避免外部修改影响
                 }
             }
         }
 
-        // 分割结果
-        private BitmapSource? _segmentationImage;
-        public BitmapSource? SegmentationImage
+        private Mat? _processedImage;
+        public Mat? ProcessedImage
         {
-            get => _segmentationImage;
+            get => _processedImage;
             set
             {
-                if (_segmentationImage != value)
+                if (_processedImage != value)
                 {
-                    _segmentationImage = value;
-                    OnPropertyChanged();
+                    _processedImage?.Dispose(); // 释放旧资源
+                    _processedImage = value?.Clone(); // 克隆新值
+                    ImageChanged.Invoke(this, EventArgs.Empty);
                 }
             }
         }
 
-        // 格式化显示的置信度
-        public string ConfidenceDisplay => $"{_confidenceLevel:P2}";
-
-        // 实现属性变更通知
-        public event PropertyChangedEventHandler? PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string? name = null)
-        {
-            // 确保在UI线程更新
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-            });
-        }
+        // 委托事件
+        public event EventHandler PatientChanged;
+        public event EventHandler ImageChanged;
+        public event EventHandler ImagePathChanged;
+        public event EventHandler ClassificationResultChanged;
+        public event EventHandler ConfidenceChanged;
     }
 }

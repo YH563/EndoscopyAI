@@ -18,6 +18,7 @@
   <ItemGroup>
     <None Remove="Sources\logo.png" />
     <None Remove="Sources\logo_inverted.png" />
+    <None Remove="Sources\robot.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +46,7 @@
   <ItemGroup>
     <Resource Include="Sources\logo.png" />
     <Resource Include="Sources\logo_inverted.png" />
+    <Resource Include="Sources\robot.png" />
   </ItemGroup>
 
 </Project>

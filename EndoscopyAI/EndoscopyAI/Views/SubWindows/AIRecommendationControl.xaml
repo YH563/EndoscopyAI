@@ -4,9 +4,263 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows"
+             xmlns:custom="clr-namespace:EndoscopyAI.Services"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:materialDesignIcons="http://materialdesigninxaml.net/winfx/xaml/icons"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="700" d:DesignWidth="350">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <!-- 自定义按钮样式 -->
+            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Padding" Value="10" />
+                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="10"/>
+                <Setter Property="Background" Value="#dcf6eb"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <!-- 高光描边 -->
+                <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+                            </Setter.Value>
+                        </Setter>
+                        <!-- 鼠标悬停时高光更明显 -->
+                        <Setter Property="BorderBrush" Value="#FFFDEB3B"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- 复制按钮样式 - 不设置Content属性 -->
+            <Style x:Key="CopyButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="24"/>
+                <Setter Property="Height" Value="24"/>
+                <Setter Property="Padding" Value="2"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="VerticalAlignment" Value="Bottom"/>
+                <Setter Property="Margin" Value="0,0,5,5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Opacity" Value="0"/>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="AntiqueWhite"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style TargetType="TextBox">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="BorderBrush" Value="Gray"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Grid>
+                                <Border x:Name="border" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True">
+                                    <ScrollViewer x:Name="PART_ContentHost" 
+                                      Focusable="false" 
+                                      HorizontalScrollBarVisibility="Hidden" 
+                                      VerticalScrollBarVisibility="Hidden"/>
+                                </Border>
+                                <Button x:Name="CopyButton" 
+                                    Style="{StaticResource CopyButtonStyle}"
+                                    Command="{Binding CopyToClipboardCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                    CommandParameter="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <!-- 直接在这里创建图标实例 -->
+                                    <materialDesign:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
+                                </Button>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="Blue"/>
+                                    <Setter TargetName="CopyButton" Property="Opacity" Value="1"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="DarkBlue"/>
+                                    <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- 为AI建议文本框创建特殊样式 -->
+            <Style x:Key="AISuggestionTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Grid>
+                                <Border x:Name="border" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True">
+                                    <ScrollViewer x:Name="PART_ContentHost" 
+                                      Focusable="false" 
+                                      HorizontalScrollBarVisibility="Auto" 
+                                      VerticalScrollBarVisibility="Auto"/>
+                                </Border>
+                                <Button x:Name="CopyButton" 
+                                    Style="{StaticResource CopyButtonStyle}"
+                                    Command="{Binding CopyToClipboardCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                    CommandParameter="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <!-- 同样在这里直接创建图标实例 -->
+                                    <materialDesign:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
+                                </Button>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#666"/>
+                                    <Setter TargetName="CopyButton" Property="Opacity" Value="1"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#999"/>
+                                    <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="ProgressBar">
+                <Setter Property="Foreground" Value="Purple"/>
+                <!-- 填充色设为紫色 -->
+                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="BorderBrush" Value="Gray"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <!-- 使用 ProgressBar 原生逻辑自动计算宽度 -->
+                            <Grid>
+                                <!-- 背景边框 -->
+                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="3"/>
+
+                                <!-- 填充部分（绑定到原生逻辑的PART_Indicator） -->
+                                <Rectangle x:Name="PART_Indicator"
+                               Fill="{TemplateBinding Foreground}"
+                               HorizontalAlignment="Left"
+                               RadiusX="3" RadiusY="3"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- 滑动条容器样式 -->
+            <Style x:Key="SliderContainerStyle" TargetType="StackPanel">
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
-            
+        <StackPanel x:Name="ButtonPanel" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+            <Button Height="50" Click="ImgEnhance">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ImageFilter" Margin="0,3,5,0" />
+                        <TextBlock Text="图像增强" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button Height="50" Click="ClassPredict">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Spa" Margin="0,5,5,0" />
+                        <TextBlock Text="分类预测" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button Height="50" Click="SegmentPredict">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Grid" Margin="0,5,5,0" />
+                        <TextBlock Text="分割预测" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+
+            <!-- AI辅助诊断区 -->
+            <Border Background="#23272F" CornerRadius="12" Margin="5,20,5,0" Padding="20" Height="460" VerticalAlignment="Bottom">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <!-- Logo和标题 -->
+                        <RowDefinition Height="4*"/>
+                        <!-- 第一个建议 -->
+                        <RowDefinition Height="6*"/>
+                        <RowDefinition Height="4*"/>
+                        <!-- 第二个建议 -->
+                        <RowDefinition Height="6*"/>
+                        <RowDefinition Height="4*"/>
+                        <!-- 提交按钮 -->
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Image Source="/Sources/robot.png" Width="60" Height="60" Margin="0,0,0,0" Grid.Column="0" HorizontalAlignment="Left"/>
+                        <TextBlock Text="知识驱动智能建议" Foreground="White" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,0,0" Grid.Column="1" HorizontalAlignment="Center"/>
+                    </Grid>
+                    
+                    <!-- Logo和标题 -->
+                    
+                    <!-- 第一个AI建议文本框 -->
+                    <TextBlock Text="诊断结果" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,20,0,0"/>
+                    <TextBox x:Name="AISuggestion1TextBox" IsReadOnly="True" Margin="0,1,0,0"
+                 Style="{StaticResource AISuggestionTextBoxStyle}"
+                 Background="#2D313A" Foreground="White" BorderBrush="#444"
+                 VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Height="90"
+                 Grid.Row="2" Grid.ColumnSpan="2" VerticalAlignment="Top"/>
+                    <!-- 第二个AI建议文本框 -->
+                    <TextBlock Text="治疗方案" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,20,0,0"/>
+                    <TextBox x:Name="AISuggestion2TextBox" IsReadOnly="True" Margin="0,1,0,0"
+                 Style="{StaticResource AISuggestionTextBoxStyle}"
+                 Background="#2D313A" Foreground="White" BorderBrush="#444"
+                 VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Height="90"
+                 Grid.Row="4" Grid.ColumnSpan="2" VerticalAlignment="Top"/>
+                    <!-- 提交按钮 -->
+                    <Button Content="一键智能诊断" Height="40" Background="#227ba2" Foreground="White"
+                FontWeight="Bold" BorderBrush="#227ba2" BorderThickness="2"
+                materialDesign:ButtonAssist.CornerRadius="8" Click="Submit_Click"
+                Grid.Row="5" Grid.ColumnSpan="2" Margin="5,15,5,5"/>
+                </Grid>
+            </Border>
+        </StackPanel>
     </Grid>
 </UserControl>

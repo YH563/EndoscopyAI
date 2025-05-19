@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows"
         mc:Ignorable="d"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         Title="患者信息查询" Height="600" Width="900"
         ResizeMode="NoResize">
     <Window.Resources>
@@ -12,7 +13,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Green.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- 自定义按钮样式 -->
@@ -25,6 +26,12 @@
                         <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
                     </Setter.Value>
                 </Setter>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="10"/>
+                <Setter Property="Background" Value="#dcf6eb"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <!-- 高光描边 -->
+                <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+                <Setter Property="BorderThickness" Value="2"/>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="RenderTransform">
@@ -32,8 +39,17 @@
                                 <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
                             </Setter.Value>
                         </Setter>
+                        <!-- 鼠标悬停时高光更明显 -->
+                        <Setter Property="BorderBrush" Value="#FFFDEB3B"/>
                     </Trigger>
                 </Style.Triggers>
+            </Style>
+
+            <!-- 自定义 TextBlock 样式 -->
+            <Style TargetType="TextBlock">
+                <Setter Property="Margin" Value="10,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="18" />
             </Style>
 
             <Style TargetType="Border">

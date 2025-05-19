@@ -6,13 +6,14 @@
              xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows"
              xmlns:custom="clr-namespace:EndoscopyAI.Services"
              mc:Ignorable="d" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              d:DesignHeight="600" d:DesignWidth="400">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Green.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Lime.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- 自定义按钮样式 -->
@@ -25,6 +26,12 @@
                         <ScaleTransform ScaleX="1.0" ScaleY="1.0" />
                     </Setter.Value>
                 </Setter>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="10"/>
+                <Setter Property="Background" Value="#dcf6eb"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <!-- 高光描边 -->
+                <Setter Property="BorderBrush" Value="#FFFFFFFF"/>
+                <Setter Property="BorderThickness" Value="2"/>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Setter Property="RenderTransform">
@@ -32,7 +39,41 @@
                                 <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
                             </Setter.Value>
                         </Setter>
+                        <!-- 鼠标悬停时高光更明显 -->
+                        <Setter Property="BorderBrush" Value="#FFFDEB3B"/>
                     </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="SliderContainerStyle" TargetType="StackPanel">
+                <Setter Property="Height" Value="0" />
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsSliderVisible}" Value="True">
+                        <DataTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
+                                        <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
+                                    </ObjectAnimationUsingKeyFrames>
+                                    <DoubleAnimation Storyboard.TargetProperty="Height"
+                                        To="50" Duration="0:0:0.3"
+                                        DecelerationRatio="0.9" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.EnterActions>
+                        <DataTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Height"
+                                        To="0" Duration="0:0:0.3"
+                                        AccelerationRatio="0.9" />
+                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
+                                        <DiscreteObjectKeyFrame KeyTime="0:0:0.3" Value="{x:Static Visibility.Collapsed}" />
+                                    </ObjectAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </DataTrigger.ExitActions>
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
 
@@ -148,25 +189,29 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
                     <Grid >
                         <TextBlock Text="所属科室：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
                     </Grid>
                 </Border>
-                <Border Grid.Row="0" Grid.Column="1" >
+                <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
                     <Grid >
                         <TextBlock Text="消化内科" VerticalAlignment="Center" Margin="10" FontSize="15"/>
                     </Grid>
                 </Border>
-                <Border Grid.Row="0" Grid.Column="2">
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Row="0" Grid.Column="0" Margin="10,0,0,0">
                     <Grid >
                         <TextBlock Text="就诊时间：" VerticalAlignment="Center" Margin="10" FontSize="15"/>
                     </Grid>
                 </Border>
-                <Border Grid.Row="0" Grid.Column="3" Margin="0,0,10,0">
+                <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
                     <Grid >
                         <TextBlock x:Name="PatientVisitTime" VerticalAlignment="Center" Margin="10" FontSize="15"/>
                     </Grid>
@@ -184,7 +229,7 @@
                 </Border>
                 <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
                     <Grid >
-                        <TextBox x:Name="PatientMedicalHistory" Margin="5" BorderThickness="0" FontSize="15"/>
+                        <TextBox x:Name="PatientMedicalHistory" Margin="5" BorderThickness="0" FontSize="15" TextChanged="PMH_Changed"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -201,7 +246,7 @@
                 </Border>
                 <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
                     <Grid>
-                        <TextBlock Text="" VerticalAlignment="Center" Margin="10" FontSize="15"/>
+                        <TextBlock x:Name="PatientAIResult" VerticalAlignment="Center" Margin="10" FontSize="15"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -220,7 +265,7 @@
                     </Grid>
                 </Border>
                 <Border Grid.Row="1" Grid.Column="0" Margin="10,0,10,0">
-                    <TextBox x:Name="PatientChiefComplaint" Margin="5" BorderThickness="0" FontSize="15" AcceptsReturn="True" TextWrapping="Wrap"/>
+                    <TextBox x:Name="PatientChiefComplaint" Margin="5" BorderThickness="0" FontSize="15" AcceptsReturn="True" TextWrapping="Wrap" TextChanged="PCC_Changed"/>
                 </Border>
                 <Border Grid.Row="2" Grid.Column="0" Margin="10,0,10,0">
                     <Grid >

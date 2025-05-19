@@ -289,6 +289,7 @@ namespace EndoscopyAI.Services
                     .Take(6)
                     .Select(g => g.Key);
 
+
                 // 读取配置部分修改（注意配置路径变更）
                 var config = new ConfigurationBuilder()
                             .SetBasePath(Directory.GetCurrentDirectory())

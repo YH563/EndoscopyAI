@@ -8,6 +8,7 @@ using OpenCvSharp;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using OpenCvSharp.WpfExtensions;
+using EndoscopyAI.Services;
 
 namespace EndoscopyAI.ViewModels.SubViewModels
 {
@@ -21,6 +22,7 @@ namespace EndoscopyAI.ViewModels.SubViewModels
 
         // 保存图像
         bool ImageSave(Mat image, string filePath, int? quality = null);
+        object ConvertMatToBitmapSource(Mat currentImage);
     }
 
     public class ImageDisplay : IImageDisplay
@@ -30,6 +32,7 @@ namespace EndoscopyAI.ViewModels.SubViewModels
         {
             try
             {
+                DataSharingService.Instance.ImagePath = filename;
                 return Cv2.ImRead(filename, ImreadModes.Color); // 使用 OpenCvSharp 加载图像
             }
             catch (Exception ex)
@@ -56,6 +59,7 @@ namespace EndoscopyAI.ViewModels.SubViewModels
             try
             {
                 var parameters = new ImageEncodingParam(ImwriteFlags.JpegQuality, quality ?? 90);
+                DataSharingService.Instance.ImagePath = filePath;
                 return Cv2.ImWrite(filePath, image, new[] { parameters });
             }
             catch (Exception ex)
@@ -64,5 +68,14 @@ namespace EndoscopyAI.ViewModels.SubViewModels
                 return false;
             }
         }
+
+        public object ConvertMatToBitmapSource(Mat currentImage)
+        {
+            if (currentImage == null || currentImage.Empty())
+                return null;
+            // 转换为 BitmapSource 并返回
+            return currentImage.ToBitmapSource();
+        }
+
     }
 }

@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 
 namespace EndoscopyAI.ViewModels.SubViewModels
 {
-    interface IAIRecommenation
+    interface IAIRecommendation
     {
         // 获得诊断建议和治疗方案
-        (string DiagnosisAdvice, string TreatmentPlan) GetRecommendation(string AIResult, string ChiefComplain, string MedicalHistory);
+        Task<(string DiagnosisAdvice, string TreatmentPlan)> GetRecommendationAsync(
+            string AIResult, string ChiefComplain, string MedicalHistory);
     }
 
-    public class AIRecommenation : IAIRecommenation
+    public class AIRecommendation : IAIRecommendation
     {
-        // 获得诊断建议和治疗方案
-        public (string DiagnosisAdvice, string TreatmentPlan) GetRecommendation(string AIResult, string ChiefComplain, string MedicalHistory)
+        // 异步实现
+        public async Task<(string DiagnosisAdvice, string TreatmentPlan)> GetRecommendationAsync(
+            string AIResult, string ChiefComplain, string MedicalHistory)
         {
-            var recommendationTask = DeepseekDevice.Instance.GetRecommendationAsync(AIResult, ChiefComplain, MedicalHistory);
-            recommendationTask.Wait(); // 等待异步任务完成
-            string advice = recommendationTask.Result.Item1; // 获取诊断建议
-            string plan = recommendationTask.Result.Item2; // 获取治疗方案
+            var (advice, plan) = await DeepseekDevice.Instance.GetRecommendationAsync(
+                AIResult, ChiefComplain, MedicalHistory);
             return (advice, plan);
         }
     }

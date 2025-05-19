@@ -10,16 +10,59 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 
 namespace EndoscopyAI.Services
 {
+    interface AIService
+    {
+        // 图像分类
+        (string, float) ImgClassify(string imagePath);
+        // 图像分割
+        SegmentationResult ImgSegment(string imagePath);
+    }
+
+    public class AIServiceImpl : AIService
+    {
+        private readonly static AIServiceImpl _instance = new AIServiceImpl();
+        public static AIServiceImpl Instance => _instance;
+
+        // 图像分类器
+        private OnnxClassifier classifier = new OnnxClassifier(
+            Path.Combine(
+                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
+                "PredModels",
+                "ClassifyModel.onnx"
+            )
+        );
+
+        // 图像分割器
+        private OnnxSegmenter segmenter = new OnnxSegmenter(
+            Path.Combine(
+                 AppDomain.CurrentDomain.BaseDirectory,  // 指向 bin\Debug
+                "PredModels",
+                "SegmentModel.onnx"
+            )
+        );
+
+        // 实现接口
+        public (string, float) ImgClassify(string imagePath)
+        {
+            return classifier.Predict(imagePath);
+        }
+
+        public SegmentationResult ImgSegment(string imagePath)
+        {
+            return segmenter.Predict(imagePath);
+        }
+    }
     // 枚举类型，存放疾病类别
     public enum DiseaseCategory
     {
-        Barret,
-        Cancer,
-        Inflammation,
-        Normal
+        barret,
+        cancer,
+        inflammation,
+        normal
     }
 
     public class OnnxClassifier
@@ -68,6 +111,13 @@ namespace EndoscopyAI.Services
             DiseaseCategory[] categories = (DiseaseCategory[])Enum.GetValues(typeof(DiseaseCategory));
             string diagnosisResult = categories[predictedClass].ToString();
             float confidence = probabilities[predictedClass];
+            Debug.Write(confidence);
+
+            if(DataSharingService.Instance.Patient != null)
+            {
+                DataSharingService.Instance.ClassificationResult = diagnosisResult;
+                DataSharingService.Instance.Confidence = confidence;
+            }
 
             return (diagnosisResult, confidence);
         }

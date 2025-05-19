@@ -1,1 +1,0 @@
-﻿..\EndoscopyAI\bin\Debug\net8.0-windows\PredModels

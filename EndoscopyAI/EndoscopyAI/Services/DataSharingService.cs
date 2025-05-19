@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -20,10 +21,8 @@ namespace EndoscopyAI.Services
         {
             _patient = new Patient();
             PatientChanged = delegate { };
+            ImageChanged = delegate { };
         }
-
-        // 不需要实时显示的数据
-        public string ImagePath { get; set; } = "";
 
         // 共享病人信息
         private Patient? _patient;
@@ -40,7 +39,26 @@ namespace EndoscopyAI.Services
             }
         }
 
+        // 共享原始图像信息
+        public Mat? OriginImage { set; get; }
+
+        // 共享处理后图像信息
+        private Mat? _processedImage;
+        public Mat? ProcessedImage
+        {
+            get => _processedImage;
+            set
+            {
+                if (_processedImage != value)
+                {
+                    _processedImage = value;
+                    ImageChanged.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
         // 委托事件
         public event EventHandler PatientChanged;
+        public event EventHandler ImageChanged;
     }
 }

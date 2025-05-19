@@ -108,7 +108,7 @@ namespace EndoscopyAI.Views
             }
 
             // 更新共享服务中的图像路径
-            DataSharingService.Instance.ImagePath = imagePath;
+            DataSharingService.Instance.Patient.ImagePath = imagePath;
         }
 
         public Mat ConvertBitmapSourceToMat(BitmapSource bitmapSource)

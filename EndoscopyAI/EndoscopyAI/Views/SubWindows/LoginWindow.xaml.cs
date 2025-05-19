@@ -35,6 +35,7 @@ namespace EndoscopyAI.Views.SubWindows
                 // 显示主窗口
                 var mainWindow = new MainWindow();
                 mainWindow.Show();
+                //mainWindow.WindowState = WindowState.Maximized;
 
                 // 关闭登录窗口
                 this.Close();

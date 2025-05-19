@@ -8,7 +8,7 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:materialDesignIcons="http://materialdesigninxaml.net/winfx/xaml/icons"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="400">
+             d:DesignHeight="800" d:DesignWidth="400">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -46,6 +46,28 @@
                 </Style.Triggers>
             </Style>
 
+            <!-- 复制按钮样式 - 不设置Content属性 -->
+            <Style x:Key="CopyButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="24"/>
+                <Setter Property="Height" Value="24"/>
+                <Setter Property="Padding" Value="2"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="VerticalAlignment" Value="Bottom"/>
+                <Setter Property="Margin" Value="0,0,5,5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Opacity" Value="0"/>
+                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="AntiqueWhite"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <Style TargetType="TextBox">
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="Padding" Value="5"/>
@@ -59,19 +81,29 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
-                            <Border x:Name="border" 
-                        BorderBrush="{TemplateBinding BorderBrush}" 
-                        BorderThickness="{TemplateBinding BorderThickness}" 
-                        Background="{TemplateBinding Background}" 
-                        SnapsToDevicePixels="True">
-                                <ScrollViewer x:Name="PART_ContentHost" 
-                                  Focusable="false" 
-                                  HorizontalScrollBarVisibility="Hidden" 
-                                  VerticalScrollBarVisibility="Hidden"/>
-                            </Border>
+                            <Grid>
+                                <Border x:Name="border" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True">
+                                    <ScrollViewer x:Name="PART_ContentHost" 
+                                      Focusable="false" 
+                                      HorizontalScrollBarVisibility="Hidden" 
+                                      VerticalScrollBarVisibility="Hidden"/>
+                                </Border>
+                                <Button x:Name="CopyButton" 
+                                    Style="{StaticResource CopyButtonStyle}"
+                                    Command="{Binding CopyToClipboardCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                    CommandParameter="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <!-- 直接在这里创建图标实例 -->
+                                    <materialDesign:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
+                                </Button>
+                            </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="border" Property="BorderBrush" Value="Blue"/>
+                                    <Setter TargetName="CopyButton" Property="Opacity" Value="1"/>
                                 </Trigger>
                                 <Trigger Property="IsKeyboardFocused" Value="True">
                                     <Setter TargetName="border" Property="BorderBrush" Value="DarkBlue"/>
@@ -82,6 +114,46 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
+            <!-- 为AI建议文本框创建特殊样式 -->
+            <Style x:Key="AISuggestionTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Grid>
+                                <Border x:Name="border" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True">
+                                    <ScrollViewer x:Name="PART_ContentHost" 
+                                      Focusable="false" 
+                                      HorizontalScrollBarVisibility="Auto" 
+                                      VerticalScrollBarVisibility="Auto"/>
+                                </Border>
+                                <Button x:Name="CopyButton" 
+                                    Style="{StaticResource CopyButtonStyle}"
+                                    Command="{Binding CopyToClipboardCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                    CommandParameter="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <!-- 同样在这里直接创建图标实例 -->
+                                    <materialDesign:PackIcon Kind="ContentCopy" Width="16" Height="16"/>
+                                </Button>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#666"/>
+                                    <Setter TargetName="CopyButton" Property="Opacity" Value="1"/>
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#999"/>
+                                    <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <Style TargetType="ProgressBar">
                 <Setter Property="Foreground" Value="Purple"/>
                 <!-- 填充色设为紫色 -->
@@ -117,30 +189,76 @@
     </UserControl.Resources>
     <Grid>
         <StackPanel x:Name="ButtonPanel" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
-            <Button Height="50" Click="ImgEnhance">
+            <Button Height="60" Click="ImgEnhance">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="ImageFilter" Margin="0,3,5,0"/>
-                        <TextBlock Text="图像增强"/>
+                        <materialDesign:PackIcon Kind="ImageFilter" Margin="0,3,5,0" />
+                        <TextBlock Text="图像增强" FontWeight="Bold"/>
                     </StackPanel>
                 </Button.Content>
             </Button>
-            <Button Height="50" Click="ClassPredict">
+            <Button Height="60" Click="ClassPredict">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon Kind="Spa" Margin="0,5,5,0" />
-                        <TextBlock Text="分类预测" />
+                        <TextBlock Text="分类预测" FontWeight="Bold"/>
                     </StackPanel>
                 </Button.Content>
             </Button>
-            <Button Height="50" Click="SegmentPredict">
+            <Button Height="60" Click="SegmentPredict">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon Kind="Grid" Margin="0,5,5,0" />
-                        <TextBlock Text="分割预测" />
+                        <TextBlock Text="分割预测" FontWeight="Bold"/>
                     </StackPanel>
                 </Button.Content>
             </Button>
+
+            <!-- AI辅助诊断区 -->
+            <Border Background="#23272F" CornerRadius="12" Margin="5,20,5,0" Padding="20" Height="460" VerticalAlignment="Bottom">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="15*"/>
+                        <ColumnDefinition Width="25*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <!-- Logo和标题 -->
+                        <RowDefinition Height="4*"/>
+                        <!-- 第一个建议 -->
+                        <RowDefinition Height="6*"/>
+                        <RowDefinition Height="4*"/>
+                        <!-- 第二个建议 -->
+                        <RowDefinition Height="6*"/>
+                        <RowDefinition Height="4*"/>
+                        <!-- 提交按钮 -->
+                    </Grid.RowDefinitions>
+                    <!-- Logo和标题 -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Grid.Row="0" Grid.ColumnSpan="2">
+                        <materialDesign:PackIcon Kind="Robot" Width="32" Height="32" Foreground="#FFD600" Margin="0,0,10,0"/>
+                        <TextBlock Text="AI建议" Foreground="White" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <!-- 第一个AI建议文本框 -->
+                    <TextBlock Text="第一个建议" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,20,0,0"/>
+                    <TextBox x:Name="AISuggestion1TextBox" IsReadOnly="True" Margin="0,1,0,0"
+                 Style="{StaticResource AISuggestionTextBoxStyle}"
+                 Background="#2D313A" Foreground="White" BorderBrush="#444"
+                 VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Height="90"
+                 Grid.Row="2" Grid.ColumnSpan="2" VerticalAlignment="Top"/>
+                    <!-- 第二个AI建议文本框 -->
+                    <TextBlock Text="第二个建议" Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,20,0,0"/>
+                    <TextBox x:Name="AISuggestion2TextBox" IsReadOnly="True" Margin="0,1,0,0"
+                 Style="{StaticResource AISuggestionTextBoxStyle}"
+                 Background="#2D313A" Foreground="White" BorderBrush="#444"
+                 VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Height="90"
+                 Grid.Row="4" Grid.ColumnSpan="2" VerticalAlignment="Top"/>
+                    <!-- 提交按钮 -->
+                    <Button Content="申请建议" Height="40" Background="#FFD600" Foreground="White"
+                FontWeight="Bold" BorderBrush="#FFD600" BorderThickness="2"
+                materialDesign:ButtonAssist.CornerRadius="8" Click="Submit_Click"
+                Grid.Row="5" Grid.ColumnSpan="2" Margin="5,15,5,5"/>
+                </Grid>
+            </Border>
         </StackPanel>
     </Grid>
 </UserControl>

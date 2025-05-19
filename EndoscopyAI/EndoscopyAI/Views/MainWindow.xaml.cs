@@ -32,6 +32,13 @@ namespace EndoscopyAI.Views
         public MainWindow()
         {
             InitializeComponent();
+
+            // 初始设置为最大化
+            this.WindowState = WindowState.Maximized;
+
+            // 限制调整模式为仅允许最小化
+            this.ResizeMode = ResizeMode.CanMinimize;
+
             DataSharingService.Instance.ImageChanged += OnImageChanged;
 
         }

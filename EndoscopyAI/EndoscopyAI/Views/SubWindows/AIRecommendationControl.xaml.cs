@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interop;
-using System.Windows.Media;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using EndoscopyAI.Services;
 using EndoscopyAI.ViewModels;
 using OpenCvSharp;
+using System.Drawing;
+using System.Windows.Interop;
 using EndoscopyAI.ViewModels.SubViewModels;
+using System.Windows.Media;
 
 namespace EndoscopyAI.Views.SubWindows
 {
@@ -20,7 +18,6 @@ namespace EndoscopyAI.Views.SubWindows
     /// </summary>
     public partial class AIRecommendationControl : UserControl
     {
-
         // 用于加载和显示图像的实例
         private readonly IImageDisplay _imageDisplay;
 
@@ -34,11 +31,53 @@ namespace EndoscopyAI.Views.SubWindows
         // 用于存储分割结果的叠加图像
         private BitmapSource segmentationOverlay;
 
+        // 复制命令
+        public ICommand CopyToClipboardCommand { get; }
+
         public AIRecommendationControl()
         {
             InitializeComponent();
             _imageDisplay = new ImageDisplay(); // 初始化 ImageDisplay 实例
             DataContext = this; // 设置数据上下文为自身
+
+            // 初始化复制命令
+            CopyToClipboardCommand = new RelayCommand<string>(text =>
+            {
+                if (!string.IsNullOrEmpty(text))
+                {
+                    try
+                    {
+                        Clipboard.SetText(text);
+                        // 可以添加复制成功的反馈，比如显示一个ToolTip
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"复制失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            });
+
+            // 确保控件加载完成后绑定命令
+            this.Loaded += (s, e) =>
+            {
+                BindCopyCommand(AISuggestion1TextBox);
+                BindCopyCommand(AISuggestion2TextBox);
+            };
+        }
+
+        private void BindCopyCommand(TextBox textBox)
+        {
+            if (textBox.Template.FindName("CopyButton", textBox) is Button button)
+            {
+                button.Command = CopyToClipboardCommand;
+                button.CommandParameter = textBox.Text;
+
+                // 当文本变化时更新命令参数
+                textBox.TextChanged += (s, e) =>
+                {
+                    button.CommandParameter = textBox.Text;
+                };
+            }
         }
 
         // 图像增强
@@ -153,6 +192,65 @@ namespace EndoscopyAI.Views.SubWindows
             {
                 MessageBox.Show($"分割预测失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void Submit_Click(object sender, RoutedEventArgs e)
+        {
+            // 修改AISuggestion1和AISuggestion2的内容
+            string suggestion1 = "建议进行进一步的检查和观察。";
+            string suggestion2 = "建议进行定期随访。";
+            AISuggestion1TextBox.Text = suggestion1;
+            AISuggestion2TextBox.Text = suggestion2;
+
+            // 更新命令参数
+            if (AISuggestion1TextBox.Template.FindName("CopyButton", AISuggestion1TextBox) is Button button1)
+            {
+                button1.CommandParameter = suggestion1;
+            }
+
+            if (AISuggestion2TextBox.Template.FindName("CopyButton", AISuggestion2TextBox) is Button button2)
+            {
+                button2.CommandParameter = suggestion2;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 泛型RelayCommand实现
+    /// </summary>
+    /// <typeparam name="T">命令参数类型</typeparam>
+    public class RelayCommand<T> : ICommand
+    {
+        private readonly Action<T> _execute;
+        private readonly Predicate<T> _canExecute;
+
+        public RelayCommand(Action<T> execute) : this(execute, null) { }
+
+        public RelayCommand(Action<T> execute, Predicate<T> canExecute)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return _canExecute == null || _canExecute((T)parameter);
+        }
+
+        public void Execute(object parameter)
+        {
+            _execute((T)parameter);
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 }

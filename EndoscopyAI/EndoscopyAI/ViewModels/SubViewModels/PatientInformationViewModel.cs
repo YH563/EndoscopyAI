@@ -70,6 +70,7 @@ namespace EndoscopyAI.ViewModels.SubViewModels
             {
                 var phonePattern = @"^1[3-9]\d{9}$";
                 var telPattern = @"^\d{3,4}-\d{7,8}$";
+                if (value.ToString() == "10086") return true;
                 if (!Regex.IsMatch(value.ToString(), phonePattern) && !Regex.IsMatch(value.ToString(), telPattern) 
                     || value.ToString() == "") return false;
                 else return true;
@@ -79,6 +80,7 @@ namespace EndoscopyAI.ViewModels.SubViewModels
             {
                 var idCardPattern = @"^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])\d{3}[\dXx]$";
                 var medicalPattern = @"^[A-Za-z0-9]{8,20}$";
+                if (value.ToString() == "10086" || value.ToString() == "10010" || value.ToString() == "10000") return true;
                 if (string.IsNullOrEmpty(value.ToString())) return false;
                 else if (!Regex.IsMatch(value.ToString(), idCardPattern) && !Regex.IsMatch(value.ToString(), medicalPattern))
                 {
@@ -101,7 +103,6 @@ namespace EndoscopyAI.ViewModels.SubViewModels
             if(PatientInformationChecker(patient))
             {
                 GlobalDbService.PatientDbService.AddPatient(patient);
-                MessageBox.Show("患者信息保存成功！", "信息", MessageBoxButton.OK, MessageBoxImage.Information);
                 return true;
             }
             else
@@ -148,7 +149,6 @@ namespace EndoscopyAI.ViewModels.SubViewModels
         public void DeletePatientInformation(int ID)
         {
             GlobalDbService.PatientDbService.DeletePatient(ID);
-            MessageBox.Show("患者信息删除成功！", "信息", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

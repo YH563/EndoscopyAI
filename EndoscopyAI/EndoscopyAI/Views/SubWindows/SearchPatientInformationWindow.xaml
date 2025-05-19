@@ -85,6 +85,7 @@
                 <ColumnDefinition Width="180"/>
                 <ColumnDefinition Width="250"/>
                 <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="80"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <ComboBox x:Name="searchTypeComboBox" Grid.Column="0" Width="150" Margin="10" SelectedIndex="0">
@@ -93,7 +94,8 @@
             </ComboBox>
             <TextBox x:Name="searchInputTextBox" Grid.Column="1" Width="200" Margin="10" VerticalAlignment="Center"/>
             <Button x:Name="searchButton" Grid.Column="2" Width="60" Height="40" Margin="10" Content="查询" Click="Search_Click"/>
-            <Grid Grid.Column="3">
+            <Button x:Name="refreshButton" Grid.Column="3" Width="60" Height="40" Margin="10" Content="刷新" Click="Refresh_Click"/>
+            <Grid Grid.Column="4">
                 <Button x:Name="addPatientButton" Width="100" Height="40" Margin="10" Content="添加患者" HorizontalAlignment="Right" Click="Add_Click"/>
             </Grid>
         </Grid>
@@ -149,7 +151,7 @@
                             </Grid.ColumnDefinitions>
                             <Border Grid.Column="0">
                                 <Grid>
-                                    <TextBlock Text="{Binding ID}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                    <TextBlock Text="{Binding PatientID}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
                                 </Grid>
                                 
                             </Border>

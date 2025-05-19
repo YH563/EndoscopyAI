@@ -6,12 +6,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Sources\logo_single.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Sources\logo.png" />
     <None Remove="Sources\logo_inverted.png" />
     <None Remove="Sources\robot.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Sources\logo_single.ico" />
   </ItemGroup>
 
   <ItemGroup>

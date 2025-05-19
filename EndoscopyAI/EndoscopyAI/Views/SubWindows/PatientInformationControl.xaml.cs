@@ -28,7 +28,7 @@ namespace EndoscopyAI.Views.SubWindows
     {
         Patient? patient = new Patient();  // 病人信息实例
         IPatientInformation patientInformation = new PatientInformation();  // 病人信息接口实例
-        private DispatcherTimer _inputTimer;
+        private DispatcherTimer? _inputTimer;
 
         public PatientInformationControl()
         {
@@ -47,7 +47,7 @@ namespace EndoscopyAI.Views.SubWindows
         {
             if (patient != null)
             {
-                PatientID.Text = patient.ID.ToString();
+                PatientID.Text = patient.PatientID.ToString();
                 PatientName.Text = patient.Name;
                 PatientAge.Text = patient.Age.ToString();
                 PatientGender.Text = patient.Gender;
@@ -66,7 +66,7 @@ namespace EndoscopyAI.Views.SubWindows
         {
             if (patient != null)
             {
-                PatientID.Text = patient.ID.ToString();
+                PatientID.Text = patient.PatientID.ToString();
                 PatientName.Text = patient.Name;
                 PatientAge.Text = patient.Age.ToString();
                 PatientGender.Text = patient.Gender;

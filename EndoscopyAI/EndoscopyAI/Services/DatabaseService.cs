@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Drawing.Text;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +19,8 @@ namespace EndoscopyAI.Services
     {
         [Key]
         // 基本信息
-        public int ID { get; set; }  // 病人ID
+        public int ID { get; set; }  // 主键
+        public int PatientID { get; set; }  // 病人ID
         public string NumberID { get; set; }        // 身份证号/医保号
         public string Name { get; set; }            // 姓名
         public int Age { get; set; }                // 年龄
@@ -43,6 +45,7 @@ namespace EndoscopyAI.Services
         public Patient() 
         { 
             ID = 0;
+            PatientID = 0;
             NumberID = "";
             Name = "";
             Age = 0;
@@ -97,6 +100,8 @@ namespace EndoscopyAI.Services
                 // 病人ID自动递增
                 int maxId = _db.Patients.Any() ? _db.Patients.Max(p => p.ID) : 0;
                 patient.ID = maxId + 1;
+                int maxPatientId = _db.Patients.Any() ? _db.Patients.Max(p => p.PatientID) : 0;
+                patient.PatientID = maxPatientId + 1;
 
                 // 获取时间信息
                 DateTime now = DateTime.Now;
@@ -116,21 +121,21 @@ namespace EndoscopyAI.Services
         // 获取所有病人信息
         public List<Patient> GetPatients()
         {
-            List<Patient> patients = _db.Patients.ToList();
+            List<Patient> patients = _db.Patients.OrderBy(p => p.PatientID).ToList();
             return patients;
         }
 
         // 获取对应名字的所有病人信息
         public List<Patient>? GetPatientsByName(string name)
         {
-            List<Patient> patients = _db.Patients.Where(p => p.Name == name).OrderByDescending(p => p.ID).ToList();
+            List<Patient> patients = _db.Patients.Where(p => p.Name == name).OrderBy(p => p.PatientID).ToList();
             return patients;
         }
 
         // 获取对应身份证号/医保号的所有病人信息
         public List<Patient>? GetPatientsByNumberID(string numberID)
         {
-            List<Patient> patients = _db.Patients.Where(p => p.NumberID == numberID).OrderByDescending(p => p.ID).ToList();
+            List<Patient> patients = _db.Patients.Where(p => p.NumberID == numberID).OrderBy(p => p.PatientID).ToList();
             return patients;
         }
 
@@ -144,7 +149,7 @@ namespace EndoscopyAI.Services
         // 获取最近的病人信息
         public Patient? GetLatestPatient()
         {
-            var patient = _db.Patients.OrderByDescending(p => p.ID).FirstOrDefault();
+            var patient = _db.Patients.OrderByDescending(p => p.PatientID).FirstOrDefault();
             return patient;
         }
 
@@ -187,16 +192,21 @@ namespace EndoscopyAI.Services
         }
 
         // 删除病人
-        public void DeletePatient(int ID)
+        public void DeletePatient(int patientID)
         {
-            var patient = _db.Patients.FirstOrDefault(p => p.ID == ID);
+            var patient = _db.Patients.FirstOrDefault(p => p.PatientID == patientID);
             if (patient != null)
             {
                 _db.Patients.Remove(patient);
                 _db.SaveChanges();
+                var patients = _db.Patients.OrderBy(p => p.PatientID).ToList();
+                for (int i = 0; i < patients.Count; i++)
+                {
+                    patients[i].PatientID = i + 1;
+                }
+                _db.SaveChanges();
             }
         }
-
     }
 
     // 医生信息

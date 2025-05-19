@@ -61,14 +61,21 @@ namespace EndoscopyAI.Views.SubWindows
             }
             if (searchTypeComboBox.SelectedIndex == 1 && patientInformation.PatientInformationFormatChecker(searchInputTextBox.Text, "NumberID"))
             {
-                patients = patientInformation.GetAllPatientInformationByName(searchInputTextBox.Text);
+                patients = patientInformation.GetAllPatientInformationByNumberID(searchInputTextBox.Text);
                 LoadPatientInformation();
                 return true && patients != null;
             }
             return false;
         }
 
-        // 确认按钮TODO
+        // 刷新按钮
+        private void Refresh_Click(object sender, RoutedEventArgs e)
+        {
+            patients = patientInformation.GetAllPatientInformation();
+            LoadPatientInformation();
+        }
+
+        // 确认按钮
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button button && button.DataContext is Patient patient)
@@ -96,7 +103,9 @@ namespace EndoscopyAI.Views.SubWindows
                     try
                     {
                         if (_patients != null) _patients.Remove(patient);
-                        patientInformation.DeletePatientInformation(patient.ID);
+                        patientInformation.DeletePatientInformation(patient.PatientID);
+                        patients = patientInformation.GetAllPatientInformation();
+                        LoadPatientInformation();
                     }
                     catch (Exception ex)
                     {
@@ -116,11 +125,7 @@ namespace EndoscopyAI.Views.SubWindows
         // 搜索患者信息 TODO
         private void Search_Click(object sender, RoutedEventArgs e)
         {
-            if(SearchPatients())
-            {
-                MessageBox.Show("搜索完成");
-            }
-            else
+            if(!SearchPatients())
             {
                 patients = patientInformation.GetAllPatientInformation();
                 LoadPatientInformation();

@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Services\appsettings.json" />
     <None Remove="Sources\logo.png" />
     <None Remove="Sources\logo_inverted.png" />
     <None Remove="Sources\robot.png" />
@@ -52,6 +53,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Services\appsettings.json" />
     <Resource Include="Sources\logo.png" />
     <Resource Include="Sources\logo_inverted.png" />
     <Resource Include="Sources\robot.png" />

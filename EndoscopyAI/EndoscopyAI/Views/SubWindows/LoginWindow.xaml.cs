@@ -23,10 +23,10 @@ namespace EndoscopyAI.Views.SubWindows
 
             if (loginViewModel.CheckLogin(userId, password))
             {
-                // 显示主窗口
-                var mainWindow = new MainWindow();
-                mainWindow.Show();
+                // 登录成功后打开信息统计窗口
 
+                var InformationStatistics = new InformationStatistics();
+                InformationStatistics.Show();
                 // 关闭登录窗口
                 this.Close();
             }

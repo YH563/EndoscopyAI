@@ -30,6 +30,8 @@ namespace EndoscopyAI.Views.SubWindows
                 var Window2Patients = new Window2Patients();
                 Window2Patients.Show();
 
+                var InformationStatistics = new InformationStatistics();
+                InformationStatistics.Show();
                 // 关闭登录窗口
                 this.Close();
             }

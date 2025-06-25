@@ -78,7 +78,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Label Content="患者信息查询" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
         <Grid Grid.Row="1">
@@ -134,9 +134,16 @@
                 </Border>
             </Grid>
         </Border>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="3" Margin="5,0,5,0">
-            <!-- ItemsControl用于动态展示项目 -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+             Grid.Row="3" 
+             Margin="5,0,5,0">
             <ItemsControl x:Name="PatientsItemsControl">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel VirtualizingPanel.IsVirtualizing="True"
+                                      VirtualizingPanel.VirtualizationMode="Recycling"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <!-- 单个病人信息的卡片样式 -->

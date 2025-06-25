@@ -32,7 +32,8 @@ namespace EndoscopyAI.Views.SubWindows
 
         private void Submit_Click(object sender, RoutedEventArgs e)
         {
-            int a = 1;
+            // 将输入框内容赋值到输出框
+            AIOutputBox.Text = PatientInputBox.Text;
         }
     }
 }

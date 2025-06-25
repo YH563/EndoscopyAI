@@ -33,9 +33,9 @@
             <!-- 异常病例数 -->
             <Border CornerRadius="16" Background="#ffebee" Padding="15">
                 <StackPanel>
-                    <TextBlock Text="异常病例" FontSize="14" Foreground="#d32f2f" Margin="0,0,0,5"/>
+                    <TextBlock Text="加急病例" FontSize="14" Foreground="#d32f2f" Margin="0,0,0,5"/>
                     <TextBlock x:Name="AbnormalCasesText" Text="4" FontSize="24" FontWeight="Bold" Foreground="#b71c1c"/>
-                    <TextBlock Text="待审核异常病例" FontSize="12" Foreground="#546e7a" Margin="0,5,0,0"/>
+                    <TextBlock Text="待处理的紧急病例" FontSize="12" Foreground="#546e7a" Margin="0,5,0,0"/>
                 </StackPanel>
             </Border>
         </UniformGrid>

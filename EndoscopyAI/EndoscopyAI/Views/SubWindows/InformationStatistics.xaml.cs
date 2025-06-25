@@ -7,17 +7,22 @@ namespace EndoscopyAI.Views.SubWindows
 {
     public partial class InformationStatistics : Window
     {
-        // 示例数据
-        private readonly int[] patientCounts = { 21, 35, 28, 40, 32 };
+        //
+        // TODO：在此确定近五天的患者数量数据
+        //
+        private readonly int[] patientCounts = { 36, 25, 19, 21, 32 };
+        //
+        // TODO：在此确定近五天的日期
+        //
         private readonly string[] days = { "周一", "周二", "周三", "周四", "周五" };
 
         public InformationStatistics()
         {
             InitializeComponent();
 
-            // 初始化信息卡片数据
-            PendingTasksText.Text = "7";     // 待处理任务数
-            CompletedTasksText.Text = "23";   // 已完成任务数
+            // 感觉不好确定，这里就做一个假的吧(._.`)
+            PendingTasksText.Text = "114";     // 待处理任务数
+            CompletedTasksText.Text = "51";   // 已完成任务数
             AbnormalCasesText.Text = "4";    // 异常病例数
 
             // 监听窗口加载完成事件
@@ -48,7 +53,7 @@ namespace EndoscopyAI.Views.SubWindows
             foreach (var v in patientCounts)
                 if (v > maxCount) maxCount = v;
 
-            // 计算起始X位置（居中显示）
+            // 计算起始X位置
             double totalWidth = patientCounts.Length * barWidth + (patientCounts.Length - 1) * gap;
             double startX = (canvasWidth - totalWidth) / 2;
 

@@ -11,9 +11,16 @@
         </Grid.RowDefinitions>
 
         <!-- 顶部信息卡片区域 -->
-        <UniformGrid Grid.Row="0" Columns="3" Margin="0,0,0,20">
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
             <!-- 今日待处理任务数 -->
-            <Border CornerRadius="16" Background="#e3f2fd" Padding="15">
+            <Border Grid.Column="0" CornerRadius="16" Background="#e3f2fd" Padding="15" Margin="0,0,10,0">
                 <StackPanel>
                     <TextBlock Text="待处理任务" FontSize="14" Foreground="#1976d2" Margin="0,0,0,5"/>
                     <TextBlock x:Name="PendingTasksText" Text="7" FontSize="24" FontWeight="Bold" Foreground="#0d47a1"/>
@@ -22,7 +29,7 @@
             </Border>
 
             <!-- 已完成任务数 -->
-            <Border CornerRadius="16" Background="#e8f5e9" Padding="15">
+            <Border Grid.Column="1" CornerRadius="16" Background="#e8f5e9" Padding="15" Margin="5,0,5,0">
                 <StackPanel>
                     <TextBlock Text="已完成任务" FontSize="14" Foreground="#388e3c" Margin="0,0,0,5"/>
                     <TextBlock x:Name="CompletedTasksText" Text="23" FontSize="24" FontWeight="Bold" Foreground="#1b5e20"/>
@@ -31,14 +38,24 @@
             </Border>
 
             <!-- 异常病例数 -->
-            <Border CornerRadius="16" Background="#ffebee" Padding="15">
+            <Border Grid.Column="2" CornerRadius="16" Background="#ffebee" Padding="15" Margin="5,0,5,0">
                 <StackPanel>
                     <TextBlock Text="加急病例" FontSize="14" Foreground="#d32f2f" Margin="0,0,0,5"/>
                     <TextBlock x:Name="AbnormalCasesText" Text="4" FontSize="24" FontWeight="Bold" Foreground="#b71c1c"/>
                     <TextBlock Text="待处理的紧急病例" FontSize="12" Foreground="#546e7a" Margin="0,5,0,0"/>
                 </StackPanel>
             </Border>
-        </UniformGrid>
+
+            <!-- 开始按钮（使用Border包裹实现圆角） -->
+            <Border Grid.Column="3" CornerRadius="16" Background="#4caf50" Margin="10,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" Opacity="0.3" ShadowDepth="3" Direction="270"/>
+                </Border.Effect>
+                <Button x:Name="StartButton" Content="开始" 
+                        Background="Transparent" Foreground="White" FontSize="24" FontWeight="Bold"
+                        Padding="15" BorderThickness="0" Click="StartButton_Click"/>
+            </Border>
+        </Grid>
 
         <!-- 柱状图区域 -->
         <Border Grid.Row="1" CornerRadius="16" Background="White" Padding="20">

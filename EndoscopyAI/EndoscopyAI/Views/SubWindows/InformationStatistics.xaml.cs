@@ -142,5 +142,17 @@ namespace EndoscopyAI.Views.SubWindows
                 BarChartCanvas.Children.Add(label);
             }
         }
+
+        private void StartButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 显示主窗口
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
+
+            var Window2Patients = new Window2Patients();
+            Window2Patients.Show();
+
+            this.Close();
+        }
     }
 }

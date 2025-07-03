@@ -22,6 +22,33 @@ namespace EndoscopyAI.Services
         public string ApiKey { get; set; } = string.Empty;
     }
 
+    // DeepSeek API 响应模型，为后续解析API响应做准备，清除不必要内容获得纯文本输出
+    public class DeepSeekApiResponse
+    {
+        public string Id { get; set; }
+        public List<Choice> Choices { get; set; }
+        public Usage Usage { get; set; }
+    }
+
+    public class Choice
+    {
+        public Message Message { get; set; }
+    }
+
+    public class Message
+    {
+        public string Role { get; set; }
+        public string Content { get; set; }
+    }
+
+    public class Usage
+    {
+        public int PromptTokens { get; set; }
+        public int CompletionTokens { get; set; }
+        public int TotalTokens { get; set; }
+    }
+
+
     public static class KeywordMapper
     {
         private static readonly Dictionary<string, string> keywordMap = new Dictionary<string, string>
@@ -48,316 +75,384 @@ namespace EndoscopyAI.Services
         public string TargetLabels { get; set; }
     }
 
-    //知识图谱查找服务，定义了方向、节点、目标、关系、标签等等
-    public class Neo4jService : IAsyncDisposable
+    // 本地部署知识图谱查找关系，从neo4j上面把相关的down下来作为csv文件
+    // 定义图结构
+    public class GraphNode
     {
-        private readonly IDriver _driver;
+        public string Name { get; set; }
+        public string Label { get; set; }
+        public List<GraphEdge> Edges { get; } = new List<GraphEdge>();
+    }
 
-        public Neo4jService(string uri, string user, string password)
-        {
-            _driver = GraphDatabase.Driver(uri, AuthTokens.Basic(user, password));//账号密码先用的我的，影响不大
-        }
+    public class GraphEdge
+    {
+        public string Relation { get; set; }
+        public GraphNode Target { get; set; }
+    }
 
-        public async Task<List<Neo4jResult>> QueryEntitiesByKeywordAsync(string keyword)
+    public class LocalGraphService
+    {
+        private readonly Dictionary<string, GraphNode> _nodes = new();
+
+        public void LoadFromCsv(string filePath, char delimiter = ',')  // 注意逗号分隔
         {
-            var session = _driver.AsyncSession();
-            var results = new List<Neo4jResult>();
-            //知识图谱查询代码，不能随意改动
-            try
+            using var reader = new StreamReader(filePath);
+            string? header = reader.ReadLine(); // 跳过表头
+            while (!reader.EndOfStream)
             {
-                var cypher = @"
-                    MATCH (n)-[r]-(m)
-                    WHERE any(label IN labels(n) WHERE label IN $validLabels)
-                      AND toLower(n.name) CONTAINS toLower($keyword)
-                    RETURN DISTINCT 
-                        labels(n) AS sourceLabels, 
-                        n.name AS sourceName, 
-                        type(r) AS relationType, 
-                        startNode(r).name AS fromName,
-                        endNode(r).name AS toName,
-                        labels(m) AS targetLabels,
-                        m.name AS targetName
-                ";
+                var line = reader.ReadLine();
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-                var result = await session.RunAsync(cypher, new
+                var parts = line.Split(delimiter);
+                if (parts.Length < 5) continue;
+
+                string sourceName = parts[0].Trim('\"', ' ');
+                string sourceLabel = parts[1].Trim('\"', ' ');
+                string relation = parts[2].Trim('\"', ' ');
+                string targetName = parts[3].Trim('\"', ' ');
+                string targetLabel = parts[4].Trim('\"', ' ');
+
+                var source = GetOrCreateNode(sourceName, sourceLabel);
+                var target = GetOrCreateNode(targetName, targetLabel);
+
+                source.Edges.Add(new GraphEdge
                 {
-                    keyword,//从后台获取的信息关键词，让这些关键词与下面的节点匹配
-                    //节点包括：疾病、症状、治疗等
-                    validLabels = new[]
-                    {
-                        "Disease", "Symptom", "Treatment", "Drug", "AdjuvantTherapy", "Operation",
-                        "Diagnosis", "Pathogenesis", "Check", "Prognosis", "Cause", "PathologicalType",
-                        "Complication", "Department", "Stage", "SymptomAndSign", "TreatmentPrograms", "DrugTherapy"
-                    }
-                });
-
-                await result.ForEachAsync(record =>
-                {
-                    var fromName = record["fromName"].As<string>();
-                    var toName = record["toName"].As<string>();
-                    var sourceName = record["sourceName"].As<string>();
-
-                    var direction = fromName == sourceName ? "-->" : "<--";//双向查询关系，查询到更多相关信息
-
-                    results.Add(new Neo4jResult
-                    {
-                        Source = sourceName,
-                        SourceLabels = string.Join(", ", record["sourceLabels"].As<List<string>>()),
-                        Relation = record["relationType"].As<string>(),
-                        Direction = direction,
-                        Target = record["targetName"].As<string>(),
-                        TargetLabels = string.Join(", ", record["targetLabels"].As<List<string>>())
-                    });//构造输出结果
+                    Relation = relation,
+                    Target = target
                 });
             }
-            finally
+        }
+
+        private GraphNode GetOrCreateNode(string name, string label)
+        {
+            if (!_nodes.TryGetValue(name, out var node))
             {
-                await session.CloseAsync();
+                node = new GraphNode { Name = name, Label = label };
+                _nodes[name] = node;
+            }
+            return node;
+        }
+
+        // 本地查询并转换为 Neo4jResult 格式
+        public List<Neo4jResult> QueryEntitiesByKeyword(string keyword)
+        {
+            var results = new List<Neo4jResult>();
+
+            if (!_nodes.TryGetValue(keyword, out var node)) return results;
+
+            foreach (var edge in node.Edges)
+            {
+                results.Add(new Neo4jResult
+                {
+                    Source = node.Name,
+                    SourceLabels = node.Label,
+                    Relation = edge.Relation,
+                    Direction = "-->",
+                    Target = edge.Target.Name,
+                    TargetLabels = edge.Target.Label
+                });
             }
 
             return results;
         }
 
-        public async ValueTask DisposeAsync()
-        {
-            await _driver.CloseAsync();//自动关闭，不要管，在线查询，删了可能出问题
-        }
     }
 
     public class LargeModelService
     {
         private readonly HttpClient _httpClient;
-        private readonly DeepSeekOptions _options;
 
-        // 构造函数只需HttpClient参数，即输入deepseek的api网址
-        public LargeModelService(HttpClient httpClient)
+        public LargeModelService(string apiKey)
         {
-            _httpClient = httpClient;
-
+            _httpClient = new HttpClient
+            {
+                BaseAddress = new Uri("https://api.deepseek.com/")
+            };
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
+        // 模型调用接口
         public async Task<string> GenerateDiagnosisSuggestionAsync(string prompt)
         {
-            var requestBody = new
+            // 设置背景消息（系统消息）
+            string backgroundMessage = "作为消化内科专家，请根据以下内容，给出200字内的专业诊断报告。严格按照如下要求：给出两段内容，一段是“诊断结果”，包括“症状+疾病判断”；一段是“治疗方案”，包括“用药与后期检查方案。";
+
+            var requestContent = new
             {
-                model = "deepseek-chat",  // 调用DeepSeek专用模型，可以改成deepseek-reasoner（深度思考），但是推理时间会略长
+                model = "deepseek-chat",
                 messages = new[]
                 {
-                    new {
-                        role = "system",
-                        content = "作为消化内科专家，请根据以下内容，给出100字内的专业诊断报告。严格按照如下要求：给出两段内容，一段是“诊断结果”，包括“症状+疾病判断”；一段是“治疗方案”，包括“用药与后期检查方案”。"//背景exprience，可修改
-                    },
-                    new { role = "user", content = prompt }//设定使用角色
-                },
-                temperature = 0.7,    // 更保守的参数设置，输出温度，值越大，自由度越高
-                max_tokens = 200      // 显式控制输出长度，这里先设置200个tokens，在prompt里面说明100字以内
-            };//api里面先充了10块钱，不够用找我
+            // 系统消息 - 设置背景和角色
+            new {
+                role = "system",
+                content = backgroundMessage
+            },
+            
+            // 用户消息
+            new {
+                role = "user",
+                content = prompt
+            }
+        },
+                max_tokens = 300,  // 增加了token限制以容纳更丰富的响应
+                temperature = 0.7,
+                stream = false
+            };
 
             try
             {
-                var response = await _httpClient.PostAsJsonAsync(
-                    "v1/chat/completions",
-                    requestBody
-                );
+                var response = await _httpClient.PostAsJsonAsync("v1/chat/completions", requestContent);
 
-                // 处理速率限制（建议后续改用Polly重试策略，更为稳健）
-                if ((int)response.StatusCode == 429)
+                if (!response.IsSuccessStatusCode)
                 {
-                    await Task.Delay(2000);  // 简单延迟2秒重试，避免反复请求报错
-                    return await GenerateDiagnosisSuggestionAsync(prompt);
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"API 调用失败: {response.StatusCode}\n错误详情: {errorContent}");
                 }
 
-                response.EnsureSuccessStatusCode();
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<DeepSeekApiResponse>(jsonResponse, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true  // 忽略大小写
+                });
 
-                var stream = await response.Content.ReadAsStreamAsync();
-                var doc = await JsonDocument.ParseAsync(stream);
+                Console.WriteLine("API 原始响应：\n" + jsonResponse);
 
-                // DeepSeek的响应结构
-                return doc.RootElement
-                    .GetProperty("choices")[0]
-                    .GetProperty("message")
-                    .GetProperty("content")
-                    .GetString()
-                    ?? "生成诊断报告失败，请检查输入内容。";
+                return apiResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? string.Empty;
             }
             catch (Exception ex)
             {
-                // 捕获错误，建议记录日志
-                return $"服务暂时不可用，错误信息：{ex.Message}";
+                throw new Exception($"请求发生异常: {ex.Message}");
             }
         }
-    }
-    public sealed class DeepseekDevice
-    {
-        private readonly static DeepseekDevice _instance = new DeepseekDevice();
-        public static DeepseekDevice Instance
-        {
-            get { return _instance; }
-        }
 
-        private DeepseekDevice() { }
+        // 接口方法：一次完成图谱加载、模型调用
         public async Task<(string DiagnosisAdvice, string TreatmentPlan)> GetRecommendationAsync(string AIResult, string ChiefComplain, string MedicalHistory)
         {
-            //Step 1:从后台获取分类结果，一定要精确输入
             if (string.IsNullOrWhiteSpace(AIResult))
             {
                 MessageBox.Show("病人症状不能为空，请重新选择", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                return ("", "");//TODO
+                return ("", "");
             }
 
-            var history = MedicalHistory;
-            if (string.IsNullOrWhiteSpace(history))
-            {
-                history = "无既往病史";
-            }
-
-            //关键词精确匹配
+            var history = string.IsNullOrWhiteSpace(MedicalHistory) ? "无既往病史" : MedicalHistory;
             var mappedKeyword = KeywordMapper.MapToMedicalTerm(AIResult);
 
             if (mappedKeyword == null)
             {
                 Console.WriteLine("输入的关键词无效或未定义对应医学术语。");
-            }//稳健性，这里应该用不到
+                return ("", "");
+            }
 
-            //如果病人健康，可以直接输出这个结果并进行出现在“诊断建议“治疗方案的框里面”
             if (mappedKeyword == "normal")
             {
                 var resultText = "恭喜！病人健康，无需其他诊断建议！";
-                return (resultText, resultText);//直接返回建议即可
+                return (resultText, resultText);
             }
 
-            //Neo4j的账号密码，如果登陆不上就是我关机了，请立刻私信我
-            var neo4j = new Neo4jService("bolt://10.208.123.179:7687", "neo4j", "Benzion030921");
+            // ✅ 本地图谱初始化（每次调用加载一次 CSV）
+            var graph = new LocalGraphService();
+            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."));
+            var csvPath = Path.Combine(projectRoot, "Services", "esophagus_relations.csv");
 
-            //Step 2:根据知识图谱，输出查找的症状结果
-            try
+            if (!File.Exists(csvPath))
             {
-                var results = await neo4j.QueryEntitiesByKeywordAsync(mappedKeyword);
-
-                //Step 3:对话操作，请求医生的进一步输入的主诉
-                var symptomInput = ChiefComplain;
-
-                if (!string.IsNullOrWhiteSpace(symptomInput))
-                {
-                    // 症状之间需要分割，任何分割都是可以的
-                    var Symptoms = Regex
-                        .Split(symptomInput, @"[,\，\.\。\s;；\n\r]+")
-                        .Where(s => !string.IsNullOrWhiteSpace(s))
-                        .Select(s => s.Trim())
-                        .ToList();
-
-                    // 启动模糊查找
-                    foreach (var symptom in Symptoms)
-                    {
-                        var symptomResults = await neo4j.QueryEntitiesByKeywordAsync(symptom);
-
-                        foreach (var category in new[] { "Cause", "Drug", "Operation" })
-                        {
-                            var filtered = symptomResults.Where(r => r.TargetLabels.Contains(category)).ToList();
-                        }
-                    }
-                }
-
-                // 组装诊断建议文本，考虑到使用长度，优先症状重合者先输出，且先输出前6个高频内容
-                var PromptInitial = new StringBuilder();
-
-                var symptoms = results
-                    .Where(r => r.TargetLabels.Contains("Symptom") || r.TargetLabels.Contains("SymptomAndSign"))
-                    .GroupBy(r => r.Target)
-                    .OrderByDescending(g => g.Count())
-                    .Take(6)
-                    .Select(g => g.Key);
-
-                var causes = results
-                    .Where(r => r.TargetLabels.Contains("Cause"))
-                    .GroupBy(r => r.Target)
-                    .OrderByDescending(g => g.Count())
-                    .Take(6)
-                    .Select(g => g.Key);
-
-                var drugs = results
-                    .Where(r => r.TargetLabels.Contains("Drug"))
-                    .GroupBy(r => r.Target)
-                    .OrderByDescending(g => g.Count())
-                    .Take(6)
-                    .Select(g => g.Key);
-
-                var operations = results
-                    .Where(r => r.TargetLabels.Contains("Operation"))
-                .GroupBy(r => r.Target)
-                    .OrderByDescending(g => g.Count())
-                    .Take(6)
-                    .Select(g => g.Key);
-
-
-                // 读取配置部分修改（注意配置路径变更）
-                var config = new ConfigurationBuilder()
-                            .SetBasePath(Directory.GetCurrentDirectory())
-                            .AddJsonFile("appsettings.json", optional: false)
-                            .Build();
-
-                //Step 4:调用DeepSeek大模型生成诊断建议
-                // 显式指定命名空间
-                var deepseekOptions = config.GetSection("DeepSeekOptions").Get<DeepSeekOptions>();
-
-                if (string.IsNullOrEmpty(deepseekOptions?.ApiKey))
-                {
-                    MessageBox.Show("DeepSeek API Key 未配置", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return ("", "");//TODO
-                }
-
-                // API端点变更，从openAI变为deepseek
-                var httpClient = new HttpClient
-                {
-                    BaseAddress = new Uri("https://api.deepseek.com/")//deepseek基础链接
-                };
-                httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", deepseekOptions.ApiKey);
-                httpClient.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                // 现在可以单参数初始化
-                var largeModelService = new LargeModelService(httpClient);
-
-                // 合并既往病史到finalPrompt
-                var finalPrompt = $"病人既往病史：{history}\n现在的症状是：{AIResult}\n根据知识图谱，得到的诊断建议：{PromptInitial.ToString()}";
-
-                //Step 5:DeepSeek输出，这里是需要展示的内容
-
-                var suggestion = await largeModelService.GenerateDiagnosisSuggestionAsync(finalPrompt);
-                // 假设 suggestion 格式为：强制输出deepseek的输出
-                // 诊断结果：xxx。治疗方案：yyy。严格限制deepseek的输出格式
-                var diagnosis = "";
-                var treatment = "";
-
-                // 尝试用关键词分割
-                var diagnosisIndex = suggestion.IndexOf("诊断结果");
-                var treatmentIndex = suggestion.IndexOf("治疗方案");
-
-                if (diagnosisIndex >= 0 && treatmentIndex > diagnosisIndex)
-                {
-                    diagnosis = suggestion.Substring(diagnosisIndex, treatmentIndex - diagnosisIndex).Trim();
-                    treatment = suggestion.Substring(treatmentIndex).Trim();
-                }
-                else
-                {
-                    // 如果格式不标准，全部拿取建议即可，需要医生进行修改
-                    diagnosis = suggestion;
-                    treatment = suggestion;
-                }
-
-                // 分两段输出
-                //Console.WriteLine("\n【诊断结果】\n" + diagnosis + "\n");
-                //Console.WriteLine("【治疗方案】\n" + treatment + "\n");
-
-                return (diagnosis, treatment);//返回结果
-
+                throw new FileNotFoundException($"找不到知识图谱文件: {csvPath}");
             }
-            finally
+
+            graph.LoadFromCsv(csvPath);
+
+            // ✅ 查询主关键词
+            var results = graph.QueryEntitiesByKeyword(mappedKeyword);
+
+            // ✅ 追加主诉症状模糊查询
+            if (!string.IsNullOrWhiteSpace(ChiefComplain))
             {
-                await neo4j.DisposeAsync();
+                var Symptoms = Regex.Split(ChiefComplain, @"[,\，\.\。\s;；\n\r]+")
+                                    .Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()).ToList();
+
+                foreach (var symptom in Symptoms)
+                {
+                    var symptomResults = graph.QueryEntitiesByKeyword(symptom);
+                    results.AddRange(symptomResults);
+                }
             }
+
+            // ✅ 构造提示词
+            var PromptInitial = new StringBuilder();
+
+            void AppendItems(string title, IEnumerable<string> items)
+            {
+                if (items.Any())
+                    PromptInitial.AppendLine($"{title}：" + string.Join("，", items) + "。");
+            }
+
+            AppendItems("症状", results.Where(r => r.TargetLabels.Contains("Symptom") || r.TargetLabels.Contains("SymptomAndSign"))
+                                      .GroupBy(r => r.Target).OrderByDescending(g => g.Count()).Take(6).Select(g => g.Key));
+            AppendItems("可能病因", results.Where(r => r.TargetLabels.Contains("Cause"))
+                                          .GroupBy(r => r.Target).OrderByDescending(g => g.Count()).Take(6).Select(g => g.Key));
+            AppendItems("推荐用药", results.Where(r => r.TargetLabels.Contains("Drug"))
+                                          .GroupBy(r => r.Target).OrderByDescending(g => g.Count()).Take(6).Select(g => g.Key));
+            AppendItems("推荐手术", results.Where(r => r.TargetLabels.Contains("Operation"))
+                                          .GroupBy(r => r.Target).OrderByDescending(g => g.Count()).Take(6).Select(g => g.Key));
+
+            var finalPrompt = $"病人既往病史：{history}\n现在的症状是：{AIResult}\n根据知识图谱，得到的诊断建议：\n{PromptInitial}";
+
+            // ✅ 调用大模型
+            var suggestion = await GenerateDiagnosisSuggestionAsync(finalPrompt);
+
+            // ✅ 清理多余的空格和换行符
+            suggestion = CleanResponseText(suggestion);
+
+            // ✅ 增强提取逻辑
+            var (diagnosis, treatment) = ExtractDiagnosisAndTreatment(suggestion);
+
+            return (diagnosis, treatment);
+        }
+
+        // 清理一些不必要的文本输出
+        private (string Diagnosis, string Treatment) ExtractDiagnosisAndTreatment(string suggestion)
+        {
+            // ✅ 更健壮的提取逻辑
+            string diagnosis = "未找到诊断信息";
+            string treatment = "未找到治疗方案信息";
+
+            // 尝试多种可能的标题格式
+            var diagnosisKeywords = new[] { "诊断结果", "诊断建议", "诊断分析" };
+            var treatmentKeywords = new[] { "治疗方案", "治疗建议", "处理方案" };
+
+            int diagnosisIndex = -1;
+            int treatmentIndex = -1;
+            string usedDiagnosisKeyword = string.Empty;
+            string usedTreatmentKeyword = string.Empty;
+
+            // 查找诊断标题
+            foreach (var keyword in diagnosisKeywords)
+            {
+                int index = suggestion.IndexOf(keyword);
+                if (index >= 0 && (diagnosisIndex == -1 || index < diagnosisIndex))
+                {
+                    diagnosisIndex = index;
+                    usedDiagnosisKeyword = keyword;
+                }
+            }
+
+            // 查找治疗标题
+            foreach (var keyword in treatmentKeywords)
+            {
+                int index = suggestion.IndexOf(keyword);
+                if (index >= 0 && (treatmentIndex == -1 || index < treatmentIndex))
+                {
+                    treatmentIndex = index;
+                    usedTreatmentKeyword = keyword;
+                }
+            }
+
+            // ✅ 确保索引在有效范围内
+            if (diagnosisIndex >= suggestion.Length) diagnosisIndex = -1;
+            if (treatmentIndex >= suggestion.Length) treatmentIndex = -1;
+
+            // ✅ 安全的子字符串提取
+            if (diagnosisIndex >= 0)
+            {
+                // 计算诊断部分的结束位置
+                int diagnosisEnd = (treatmentIndex > diagnosisIndex && treatmentIndex < suggestion.Length)
+                    ? treatmentIndex
+                    : suggestion.Length;
+
+                diagnosis = suggestion.Substring(diagnosisIndex, diagnosisEnd - diagnosisIndex).Trim();
+            }
+
+            if (treatmentIndex >= 0 && treatmentIndex < suggestion.Length)
+            {
+                treatment = suggestion.Substring(treatmentIndex).Trim();
+            }
+
+            // ✅ 处理只找到一种信息的情况
+            if (diagnosisIndex >= 0 && treatmentIndex < 0)
+            {
+                // 尝试在诊断文本中分割
+                var parts = diagnosis.Split(new[] { "治疗方案", "治疗建议" }, 2, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 2)
+                {
+                    diagnosis = parts[0].Trim();
+                    treatment = parts[1].Trim();
+                }
+            }
+
+            // ✅ 清理文本
+            diagnosis = CleanSectionText(diagnosis, usedDiagnosisKeyword);
+            treatment = CleanSectionText(treatment, usedTreatmentKeyword);
+
+            return (diagnosis, treatment);
+        }
+
+        // ✅ 响应文本清理
+        private string CleanResponseText(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return input;
+
+            // 移除JSON转义字符
+            input = input.Replace("\\n", "\n")
+                         .Replace("\\\"", "\"")
+                         .Replace("\\t", " ");
+
+            // 合并多余换行
+            input = Regex.Replace(input, @"\n{3,}", "\n\n");
+
+            // 移除结尾的模型元数据
+            input = Regex.Replace(input, @"(\n)?\[.*?\]$", "");
+            input = Regex.Replace(input, @"(\n)?【.*?】$", "");
+
+            return input.Trim();
+        }
+
+        //文本清理
+        private string CleanSectionText(string input, string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return input;
+
+            // 移除结尾的无关内容
+            input = Regex.Replace(input, @"\s*/\w+$", ""); // 移除 /n /t 等
+            input = Regex.Replace(input, @"\s*\d+$", "");  // 移除结尾数字
+
+            var endPhrases = new[] {
+        "以上建议仅供参考",
+        "请咨询专业医生",
+        "具体请以实际就诊为准",
+        "祝您健康",
+        "建议及时就医"
+    };
+
+            foreach (var phrase in endPhrases)
+            {
+                if (input.EndsWith(phrase))
+                {
+                    input = input.Substring(0, input.Length - phrase.Length).Trim();
+                }
+            }
+
+            return input.Trim();
+        }
+
+
+        // 静态辅助方法：构造服务并调用
+        public static async Task<(string, string)> RunAsync(string AIResult, string ChiefComplain, string MedicalHistory)
+        {
+            var config = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false)
+                .Build();
+
+            var options = config.GetSection("DeepSeekOptions").Get<DeepSeekOptions>();
+
+            if (string.IsNullOrWhiteSpace(options?.ApiKey))
+            {
+                throw new InvalidOperationException("DeepSeek API Key 未配置");
+            }
+
+            var service = new LargeModelService(options.ApiKey);
+            return await service.GetRecommendationAsync(AIResult, ChiefComplain, MedicalHistory);
         }
     }
-
 }

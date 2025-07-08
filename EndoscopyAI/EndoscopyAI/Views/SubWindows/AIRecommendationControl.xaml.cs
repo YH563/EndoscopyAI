@@ -112,8 +112,8 @@ namespace EndoscopyAI.Views.SubWindows
             try
             {
                 var (predictedClass, confidence) = imageProcess.ImgClassify(DataSharingService.Instance.Patient.ImagePath);
-                DataSharingService.Instance.Patient.AIResult = predictedClass;
-                DataSharingService.Instance.Patient.AIConfidenceLevel = confidence;
+                DataSharingService.Instance.ClassificationResult = predictedClass;
+                DataSharingService.Instance.Confidence = confidence;
             }
             catch (Exception ex)
             {

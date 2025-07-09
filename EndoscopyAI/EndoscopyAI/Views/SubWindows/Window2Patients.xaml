@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows" 
-    mc:Ignorable="d"
+        mc:Ignorable="d"
         Title="智能问诊" Height="750" Width="650" ResizeMode="NoResize"
         Background="#f5f5f5"
         WindowStartupLocation="CenterScreen">
@@ -58,6 +58,7 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
 
             <!-- 圆角TextBox样式 -->
             <Style x:Key="RoundedTextBoxStyle" TargetType="TextBox">
@@ -112,13 +113,13 @@
                 <Setter Property="MaxWidth" Value="400"/>
             </Style>
 
-            <!-- 患者消息样式 -->
+            <!-- 患者消息样式（深绿底白字，靠右） -->
             <Style x:Key="PatientMessageStyle" TargetType="Border" BasedOn="{StaticResource ChatMessageStyle}">
-                <Setter Property="Background" Value="#dcf6eb"/>
+                <Setter Property="Background" Value="#1ba58c"/>
                 <Setter Property="HorizontalAlignment" Value="Right"/>
             </Style>
 
-            <!-- AI消息样式 -->
+            <!-- AI消息样式（浅绿底黑字，靠左） -->
             <Style x:Key="AIMessageStyle" TargetType="Border" BasedOn="{StaticResource ChatMessageStyle}">
                 <Setter Property="Background" Value="#e6f7f2"/>
                 <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -126,9 +127,12 @@
 
             <!-- 消息样式转换器 -->
             <local:MessageStyleConverter x:Key="MessageStyleConverter"/>
+
+            <!-- 消息前景色转换器 -->
+            <local:MessageForegroundConverter x:Key="MessageForegroundConverter"/>
         </ResourceDictionary>
     </Window.Resources>
-    
+
     <Grid Margin="30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -149,7 +153,7 @@
                     <StackPanel Orientation="Vertical">
                         <TextBlock Text="{Binding Timestamp}" FontSize="12" Foreground="#666" Margin="0,0,0,2"/>
                         <Border Style="{Binding IsPatientMessage, Converter={StaticResource MessageStyleConverter}}">
-                            <TextBlock Text="{Binding Message}" FontSize="15" Foreground="#333"/>
+                            <TextBlock Text="{Binding Message}" FontSize="15" Foreground="{Binding IsPatientMessage, Converter={StaticResource MessageForegroundConverter}}"/>
                         </Border>
                     </StackPanel>
                 </DataTemplate>

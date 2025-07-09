@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace EndoscopyAI.Views.SubWindows
 {
@@ -22,7 +23,6 @@ namespace EndoscopyAI.Views.SubWindows
             {
                 try
                 {
-                    // 优先尝试从窗口资源查找
                     var window = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Window2Patients);
                     if (window != null)
                     {
@@ -30,18 +30,34 @@ namespace EndoscopyAI.Views.SubWindows
                         if (style != null)
                             return style;
                     }
-
-                    // 回退到应用程序级资源
                     return Application.Current.TryFindResource(isPatientMessage ? "PatientMessageStyle" : "AIMessageStyle");
                 }
                 catch (Exception ex)
                 {
-                    // 记录错误以便调试
                     System.Diagnostics.Debug.WriteLine($"查找样式失败: {ex.Message}");
                     return null;
                 }
             }
             return null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    // 消息前景色转换器
+    public class MessageForegroundConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value is bool isPatientMessage)
+            {
+                return isPatientMessage ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"))
+                                       : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#333"));
+            }
+            return new SolidColorBrush(Colors.Black); // 默认黑色
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

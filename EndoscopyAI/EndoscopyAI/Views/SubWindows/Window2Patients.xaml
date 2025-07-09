@@ -4,8 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        mc:Ignorable="d"
-        Title="智能问诊" Height="550" Width="600" ResizeMode="NoResize"
+        xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows" 
+    mc:Ignorable="d"
+        Title="智能问诊" Height="750" Width="650" ResizeMode="NoResize"
         Background="#f5f5f5"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
@@ -29,12 +30,12 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="border"
-                                    CornerRadius="10"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    Padding="{TemplateBinding Padding}"
-                                    RenderTransformOrigin="0.5,0.5">
+                                CornerRadius="10"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                RenderTransformOrigin="0.5,0.5">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -72,24 +73,23 @@
                         <ControlTemplate TargetType="TextBox">
                             <Grid>
                                 <Border x:Name="border"
-                                        CornerRadius="10"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                        SnapsToDevicePixels="True">
+                                    CornerRadius="10"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    SnapsToDevicePixels="True">
                                     <ScrollViewer x:Name="PART_ContentHost"
-                                                  Margin="{TemplateBinding Padding}"
-                                                  VerticalAlignment="Stretch"/>
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Stretch"/>
                                 </Border>
-                                <!-- 提示文本 -->
                                 <TextBlock x:Name="placeholder"
-                                           Text="{TemplateBinding materialDesign:HintAssist.Hint}"
-                                           Foreground="{TemplateBinding Foreground}"
-                                           Opacity="0.5"
-                                           Margin="8,0"
-                                           VerticalAlignment="Center"
-                                           Visibility="Collapsed"
-                                           IsHitTestVisible="False"/>
+                                       Text="{TemplateBinding materialDesign:HintAssist.Hint}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       Opacity="0.5"
+                                       Margin="8,0"
+                                       VerticalAlignment="Center"
+                                       Visibility="Collapsed"
+                                       IsHitTestVisible="False"/>
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="Text" Value="">
@@ -103,13 +103,34 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+
+            <!-- 聊天消息基础样式 -->
+            <Style x:Key="ChatMessageStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Padding" Value="10"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="MaxWidth" Value="400"/>
+            </Style>
+
+            <!-- 患者消息样式 -->
+            <Style x:Key="PatientMessageStyle" TargetType="Border" BasedOn="{StaticResource ChatMessageStyle}">
+                <Setter Property="Background" Value="#dcf6eb"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+            </Style>
+
+            <!-- AI消息样式 -->
+            <Style x:Key="AIMessageStyle" TargetType="Border" BasedOn="{StaticResource ChatMessageStyle}">
+                <Setter Property="Background" Value="#e6f7f2"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+            </Style>
+
+            <!-- 消息样式转换器 -->
+            <local:MessageStyleConverter x:Key="MessageStyleConverter"/>
         </ResourceDictionary>
     </Window.Resources>
-
+    
     <Grid Margin="30">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -121,40 +142,38 @@
             <TextBlock Text="智能问诊" FontSize="24" FontWeight="Bold" Foreground="#333"/>
         </StackPanel>
 
+        <!-- 聊天记录区 -->
+        <ListBox x:Name="ChatHistoryListBox" Grid.Row="1" Margin="0,0,0,10" ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding Timestamp}" FontSize="12" Foreground="#666" Margin="0,0,0,2"/>
+                        <Border Style="{Binding IsPatientMessage, Converter={StaticResource MessageStyleConverter}}">
+                            <TextBlock Text="{Binding Message}" FontSize="15" Foreground="#333"/>
+                        </Border>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
         <!-- 输入区 -->
-        <StackPanel Grid.Row="1" Margin="0,0,0,10">
-            <TextBlock Text="请描述您的症状或问题：" FontSize="16" Foreground="#444" Margin="0,0,0,5"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
             <TextBox x:Name="PatientInputBox"
                      Style="{StaticResource RoundedTextBoxStyle}"
                      AcceptsReturn="True"
                      Height="100"
+                     Width="450"
                      FontSize="15"
                      materialDesign:HintAssist.Hint=" "
                      VerticalContentAlignment="Top"/>
-        </StackPanel>
-
-        <!-- 提交按钮 -->
-        <Button Content="提交"
-                Grid.Row="2"
-                Height="50"
-                Margin="0,10,0,50"
-                Style="{StaticResource GreenRaisedButton}"
-                FontSize="16"
-                FontWeight="Bold"
-                Click="Submit_Click"/>
-
-        <!-- 输出区 -->
-        <StackPanel Grid.Row="3">
-            <TextBlock Text="AI建议：" FontSize="16" Foreground="#444" Margin="0,0,0,5"/>
-            <TextBox x:Name="AIOutputBox"
-                     Style="{StaticResource RoundedTextBoxStyle}"
-                     AcceptsReturn="True"
-                     Height="100"
-                     FontSize="15"
-                     Background="#e6f7f2"
-                     Foreground="#333"
-                     IsReadOnly="True"
-                     VerticalContentAlignment="Top"/>
+            <Button Content="发送"
+                    Height="50"
+                    Width="100"
+                    Margin="10,0,0,0"
+                    Style="{StaticResource GreenRaisedButton}"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Click="SendMessage_Click"/>
         </StackPanel>
     </Grid>
 </Window>

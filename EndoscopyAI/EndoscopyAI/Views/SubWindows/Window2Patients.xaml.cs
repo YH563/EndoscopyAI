@@ -23,14 +23,29 @@ namespace EndoscopyAI.Views.SubWindows
             {
                 try
                 {
+                    // 优先从窗口资源查找
                     var window = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Window2Patients);
+                    string styleKey = isPatientMessage ? "PatientMessageStyle" : "AIMessageStyle";
                     if (window != null)
                     {
-                        var style = window.FindResource(isPatientMessage ? "PatientMessageStyle" : "AIMessageStyle");
+                        var style = window.FindResource(styleKey);
                         if (style != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"成功找到样式: {styleKey}");
                             return style;
+                        }
                     }
-                    return Application.Current.TryFindResource(isPatientMessage ? "PatientMessageStyle" : "AIMessageStyle");
+
+                    // 回退到应用程序级资源
+                    var appStyle = Application.Current.TryFindResource(styleKey);
+                    if (appStyle != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"从应用程序资源找到样式: {styleKey}");
+                        return appStyle;
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"未找到样式: {styleKey}");
+                    return null;
                 }
                 catch (Exception ex)
                 {
@@ -38,6 +53,7 @@ namespace EndoscopyAI.Views.SubWindows
                     return null;
                 }
             }
+            System.Diagnostics.Debug.WriteLine($"MessageStyleConverter: 无效的输入值: {value}");
             return null;
         }
 

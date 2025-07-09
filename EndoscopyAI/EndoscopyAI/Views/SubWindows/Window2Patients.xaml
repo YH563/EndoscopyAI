@@ -59,7 +59,6 @@
                 </Setter>
             </Style>
 
-
             <!-- 圆角TextBox样式 -->
             <Style x:Key="RoundedTextBoxStyle" TargetType="TextBox">
                 <Setter Property="Background" Value="White"/>
@@ -148,12 +147,17 @@
 
         <!-- 聊天记录区 -->
         <ListBox x:Name="ChatHistoryListBox" Grid.Row="1" Margin="0,0,0,10" ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Vertical">
-                        <TextBlock Text="{Binding Timestamp}" FontSize="12" Foreground="#666" Margin="0,0,0,2"/>
+                        <TextBlock Text="{Binding Timestamp}" FontSize="12" Foreground="#666" Margin="0,0,0,2" HorizontalAlignment="Center"/>
                         <Border Style="{Binding IsPatientMessage, Converter={StaticResource MessageStyleConverter}}">
-                            <TextBlock Text="{Binding Message}" FontSize="15" Foreground="{Binding IsPatientMessage, Converter={StaticResource MessageForegroundConverter}}"/>
+                            <TextBlock Text="{Binding Message}" FontSize="15" Foreground="{Binding IsPatientMessage, Converter={StaticResource MessageForegroundConverter}}" TextWrapping="Wrap"/>
                         </Border>
                     </StackPanel>
                 </DataTemplate>

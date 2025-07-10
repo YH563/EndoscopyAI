@@ -113,26 +113,7 @@
                 <Button Content="保存图像" Width="80" Margin="5" FontSize="10" Click="SaveFile"/>
                 <Button Content="帮助" Width="80" Margin="5" FontSize="10"/>
                 <!-- 切换按钮 -->
-                <Button x:Name="ToggleViewButton" Content="切换视图" Width="100" Margin="5" FontSize="10" Click="ToggleView_Click">
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                            <Setter Property="Margin" Value="5" />
-                            <Setter Property="Padding" Value="10" />
-                            <Setter Property="Background" Value="#4caf50"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="10"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="RenderTransform">
-                                        <Setter.Value>
-                                            <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
-                                        </Setter.Value>
-                                    </Setter>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
+                <Button x:Name="ToggleViewButton" Content="切换视图" Width="100" Margin="5" FontSize="10" Click="ToggleView_Click"/>
             </StackPanel>
         </Border>
 

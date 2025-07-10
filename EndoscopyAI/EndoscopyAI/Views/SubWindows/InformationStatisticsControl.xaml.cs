@@ -1,25 +1,22 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace EndoscopyAI.Views.SubWindows
 {
-    public partial class InformationStatistics : Window
+    public partial class InformationStatisticsControl : UserControl
     {
         // 添加一个事件用于通知主窗口"开始"按钮被点击
-        public event EventHandler? StartButtonClicked;
+        public event EventHandler StartButtonClicked;
 
-        //
         // TODO：在此确定近五天的患者数量数据
-        //
         private readonly int[] patientCounts = { 36, 25, 19, 21, 32 };
-        //
         // TODO：在此确定近五天的日期
-        //
         private readonly string[] days = { "周一", "周二", "周三", "周四", "周五" };
 
-        public InformationStatistics()
+        public InformationStatisticsControl()
         {
             InitializeComponent();
 
@@ -28,10 +25,10 @@ namespace EndoscopyAI.Views.SubWindows
             CompletedTasksText.Text = "51";   // 已完成任务数
             AbnormalCasesText.Text = "4";    // 异常病例数
 
-            // 监听窗口加载完成事件
+            // 监听控件加载完成事件
             Loaded += (s, e) => DrawBarChart();
 
-            // 监听窗口大小变化和柱状图画布大小变化
+            // 监听控件大小变化和柱状图画布大小变化
             SizeChanged += (s, e) => DrawBarChart();
             BarChartCanvas.SizeChanged += (s, e) => DrawBarChart();
         }

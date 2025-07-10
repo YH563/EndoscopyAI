@@ -112,7 +112,7 @@
                 <Button Content="还原" Width="80" Margin="5" FontSize="10" Click="ImgReset"/>
                 <Button Content="保存图像" Width="80" Margin="5" FontSize="10" Click="SaveFile"/>
                 <Button Content="帮助" Width="80" Margin="5" FontSize="10"/>
-                <!-- 新增切换按钮 -->
+                <!-- 切换按钮 -->
                 <Button x:Name="ToggleViewButton" Content="切换视图" Width="100" Margin="5" FontSize="10" Click="ToggleView_Click">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
@@ -136,121 +136,42 @@
             </StackPanel>
         </Border>
 
-        <!-- 信息统计视图 -->
-        <Grid x:Name="StatisticsView" Grid.Row="1" Visibility="Visible" Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <!-- 视图内容区 -->
+        <Grid Grid.Row="1">
+            <!-- 统计视图区域 -->
+            <!-- 统计视图区域 -->
+            <local:InformationStatisticsControl x:Name="StatisticsViewControl" Visibility="Visible" />
 
-            <!-- 顶部信息卡片区域 -->
-            <Grid Grid.Row="0" Margin="0,0,0,20">
+            <!-- 主内容区域（三栏布局） -->
+            <Grid x:Name="ThreeColumnView" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="1.5*" />
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="1.5*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- 今日待处理任务数 -->
-                <Border Grid.Column="0" CornerRadius="16" Background="#e3f2fd" Padding="15" Margin="0,0,10,0">
-                    <StackPanel>
-                        <TextBlock Text="待处理任务" FontSize="14" Foreground="#1976d2" Margin="0,0,0,5"/>
-                        <TextBlock x:Name="PendingTasksText" Text="7" FontSize="24" FontWeight="Bold" Foreground="#0d47a1"/>
-                        <TextBlock Text="今日待处理任务" FontSize="12" Foreground="#546e7a" Margin="0,5,0,0"/>
-                    </StackPanel>
-                </Border>
+                <!-- 左侧功能按钮 -->
+                <materialDesign:Card Grid.Column="0" Margin="10" Padding="5">
+                    <local:AIRecommendationControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                </materialDesign:Card>
 
-                <!-- 已完成任务数 -->
-                <Border Grid.Column="1" CornerRadius="16" Background="#e8f5e9" Padding="15" Margin="5,0,5,0">
-                    <StackPanel>
-                        <TextBlock Text="已完成任务" FontSize="14" Foreground="#388e3c" Margin="0,0,0,5"/>
-                        <TextBlock x:Name="CompletedTasksText" Text="23" FontSize="24" FontWeight="Bold" Foreground="#1b5e20"/>
-                        <TextBlock Text="本周已完成任务" FontSize="12" Foreground="#546e7a" Margin="0,5,0,0"/>
-                    </StackPanel>
-                </Border>
+                <!-- 中间主区域（可扩展） -->
+                <materialDesign:Card Grid.Column="1" Margin="10" Padding="10">
+                    <Image x:Name="ImageDisplay" Stretch="Uniform" />
+                </materialDesign:Card>
 
-                <!-- 异常病例数 -->
-                <Border Grid.Column="2" CornerRadius="16" Background="#ffebee" Padding="15" Margin="5,0,5,0">
-                    <StackPanel>
-                        <TextBlock Text="加急病例" FontSize="14" Foreground="#d32f2f" Margin="0,0,0,5"/>
-                        <TextBlock x:Name="AbnormalCasesText" Text="4" FontSize="24" FontWeight="Bold" Foreground="#b71c1c"/>
-                        <TextBlock Text="待处理的紧急病例" FontSize="12" Foreground="#546e7a" Margin="0,5,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- 开始按钮 -->
-                <Border Grid.Column="3" CornerRadius="16" Background="#4caf50" Margin="10,0,0,0">
-                    <Border.Effect>
-                        <DropShadowEffect BlurRadius="10" Opacity="0.3" ShadowDepth="3" Direction="270"/>
-                    </Border.Effect>
-                    <Button x:Name="StartButton" 
-                            Background="Transparent" 
-                            Foreground="White" 
-                            FontSize="24" 
-                            FontWeight="Bold"
-                            Padding="1" 
-                            BorderThickness="0" 
-                            Click="StartButton_Click"
-                            HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <!-- 播放图标 -->
-                            <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z" 
-                                Fill="White" 
-                                Stretch="Uniform"
-                                Width="24"
-                                Height="24"
-                                Margin="0,0,10,0"/>
-                            <TextBlock Text="开始" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </Border>
-            </Grid>
-
-            <!-- 柱状图区域 -->
-            <Border Grid.Row="1" CornerRadius="16" Background="White" Padding="20">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Text="近5日接诊患者数" FontSize="18" FontWeight="Bold" Foreground="#1976d2" Margin="0,0,0,10"/>
-                    <Canvas x:Name="BarChartCanvas" Grid.Row="1"/>
-                </Grid>
-            </Border>
-        </Grid>
-
-        <!-- 主内容区域（三栏布局） -->
-        <Grid x:Name="ThreeColumnView" Grid.Row="1" Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.5*" />
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="1.5*" />
-            </Grid.ColumnDefinitions>
-
-            <!-- 左侧功能按钮 -->
-            <materialDesign:Card Grid.Column="0" Margin="10" Padding="5">
-                <local:AIRecommendationControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-            </materialDesign:Card>
-
-            <!-- 中间主区域（可扩展） -->
-            <materialDesign:Card Grid.Column="1" Margin="10" Padding="10">
-                <Image x:Name="ImageDisplay" Stretch="Uniform" />
-            </materialDesign:Card>
-
-            <!-- 右侧信息面板 -->
-            <materialDesign:Card Grid.Column="2" Margin="10" Padding="10">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="6.5*" />
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
-                        <local:PatientInformationControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                <!-- 右侧信息面板 -->
+                <materialDesign:Card Grid.Column="2" Margin="10" Padding="10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="6.5*" />
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <local:PatientInformationControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </Grid>
                     </Grid>
-                </Grid>
-            </materialDesign:Card>
+                </materialDesign:Card>
+            </Grid>
         </Grid>
     </Grid>
 </Window>

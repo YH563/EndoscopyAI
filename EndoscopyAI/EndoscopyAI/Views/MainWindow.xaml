@@ -120,7 +120,6 @@
         <!-- 视图内容区 -->
         <Grid Grid.Row="1">
             <!-- 统计视图区域 -->
-            <!-- 统计视图区域 -->
             <local:InformationStatisticsControl x:Name="StatisticsViewControl" Visibility="Visible" />
 
             <!-- 主内容区域（三栏布局） -->

@@ -65,7 +65,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="近5日接诊患者数" FontSize="18" FontWeight="Bold" Foreground="#1976d2" Margin="0,0,0,10"/>
+                <TextBlock x:Name="ChartTitleTextBlock" Text="近7日接诊患者数" FontSize="18" FontWeight="Bold" Foreground="#1976d2" Margin="0,0,0,10"/>
                 <Canvas x:Name="BarChartCanvas" Grid.Row="1"/>
             </Grid>
         </Border>

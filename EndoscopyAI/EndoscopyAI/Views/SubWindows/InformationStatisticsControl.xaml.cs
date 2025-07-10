@@ -1,39 +1,51 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace EndoscopyAI.Views.SubWindows
 {
-    public partial class InformationStatistics : Window
+    public partial class InformationStatisticsControl : UserControl
     {
         // 添加一个事件用于通知主窗口"开始"按钮被点击
-        public event EventHandler? StartButtonClicked;
+        public event EventHandler StartButtonClicked;
 
-        //
-        // TODO：在此确定近五天的患者数量数据
-        //
-        private readonly int[] patientCounts = { 36, 25, 19, 21, 32 };
-        //
-        // TODO：在此确定近五天的日期
-        //
-        private readonly string[] days = { "周一", "周二", "周三", "周四", "周五" };
+        // 修改为近七天的患者数量数据
+        private readonly int[] patientCounts = { 28, 36, 25, 19, 21, 32, 40 };
+        // 修改为近七天的日期
+        private readonly string[] days = { "周二", "周三", "周四", "周五", "周六", "周日", "周一" };
 
-        public InformationStatistics()
+        public InformationStatisticsControl()
         {
             InitializeComponent();
 
             // 感觉不好确定，这里就做一个假的吧(._.`)
             PendingTasksText.Text = "114";     // 待处理任务数
-            CompletedTasksText.Text = "51";   // 已完成任务数
-            AbnormalCasesText.Text = "4";    // 异常病例数
+            CompletedTasksText.Text = "51";    // 已完成任务数
+            AbnormalCasesText.Text = "4";      // 异常病例数
+            FinalText.Text = "19";             // 最终诊断数
 
-            // 监听窗口加载完成事件
+            // 更新柱状图标题
+            UpdateChartTitle();
+
+            // 监听控件加载完成事件
             Loaded += (s, e) => DrawBarChart();
 
-            // 监听窗口大小变化和柱状图画布大小变化
+            // 监听控件大小变化和柱状图画布大小变化
             SizeChanged += (s, e) => DrawBarChart();
             BarChartCanvas.SizeChanged += (s, e) => DrawBarChart();
+        }
+
+        // 更新柱状图标题
+        private void UpdateChartTitle()
+        {
+            // 找到标题文本块并更新内容
+            var titleTextBlock = this.FindName("ChartTitleTextBlock") as TextBlock;
+            if (titleTextBlock != null)
+            {
+                titleTextBlock.Text = "近7日接诊患者数";
+            }
         }
 
         private void DrawBarChart()
@@ -47,8 +59,8 @@ namespace EndoscopyAI.Views.SubWindows
             double canvasHeight = BarChartCanvas.ActualHeight;
 
             // 计算柱状图尺寸参数
-            double barWidth = canvasWidth * 0.1;  // 柱宽为画布宽度的10%
-            double gap = canvasWidth * 0.05;      // 柱间距为画布宽度的5%
+            double barWidth = canvasWidth * 0.08;  // 柱宽为画布宽度的8%，调整以适应7个柱状图
+            double gap = canvasWidth * 0.035;      // 柱间距为画布宽度的3.5%，减小间距以适应更多柱状图
             double maxBarHeight = canvasHeight * 0.8; // 最大柱高为画布高度的80%
 
             // 找出最大值用于比例计算
@@ -99,7 +111,7 @@ namespace EndoscopyAI.Views.SubWindows
                 var dayText = new TextBlock
                 {
                     Text = days[i],
-                    FontSize = 13,
+                    FontSize = 12, // 略微减小字体大小以适应更多标签
                     Foreground = Brushes.Gray,
                     TextAlignment = TextAlignment.Center,
                     Width = barWidth

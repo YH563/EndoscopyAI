@@ -16,6 +16,7 @@ using System.Drawing;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using EndoscopyAI.Services;
 using EndoscopyAI.ViewModels.SubViewModels;
+using EndoscopyAI.Views.SubWindows;
 
 namespace EndoscopyAI.Views
 {
@@ -33,14 +34,15 @@ namespace EndoscopyAI.Views
         {
             InitializeComponent();
 
-            //// 初始设置为最大化
-            //this.WindowState = WindowState.Maximized;
-
-            //// 限制调整模式为仅允许最小化
-            //this.ResizeMode = ResizeMode.CanMinimize;
-
             DataSharingService.Instance.ImageChanged += OnImageChanged;
 
+            // 初始显示统计视图
+            StatisticsViewControl.Visibility = Visibility.Visible;
+            ThreeColumnView.Visibility = Visibility.Collapsed;
+            ToggleViewButton.Content = "进入工作区";
+
+            // 订阅统计视图的开始按钮点击事件
+            StatisticsViewControl.StartButtonClicked += StartButton_Clicked;
         }
 
         private void OnImageChanged(object? sender, EventArgs e)
@@ -67,10 +69,13 @@ namespace EndoscopyAI.Views
                 try
                 {
                     DataSharingService.Instance.Patient.ImagePath = openFileDialog.FileName;
-                    DataSharingService.Instance.ProcessedImage = _imageDisplay.LoadImageFromFile(DataSharingService.Instance.Patient.ImagePath);// 加载图像并存储到 _currentImage
+                    DataSharingService.Instance.ProcessedImage = _imageDisplay.LoadImageFromFile(DataSharingService.Instance.Patient.ImagePath);
 
                     // 在 Image 控件中显示图像
                     _imageDisplay.DisplayImage(ImageDisplay, DataSharingService.Instance.ProcessedImage);
+
+                    // 自动切换到三栏视图
+                    ShowThreeColumnView();
                 }
                 catch (Exception ex)
                 {
@@ -89,17 +94,14 @@ namespace EndoscopyAI.Views
         // 保存图像文件
         private void SaveFile(object sender, RoutedEventArgs e)
         {
+            // 确保先切换到三栏视图
+            ShowThreeColumnView();
 
-            if (DataSharingService.Instance.ProcessedImage == null)
-            {
-                MessageBox.Show("没有图像可保存", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // 打开文件对话框
+            // 保存文件逻辑
             SaveFileDialog saveFileDialog = new SaveFileDialog
             {
-                Filter = "JPEG Image|*.jpg;*.jpeg|PNG Image|*.png|BMP Image|*.bmp"
+                Filter = "PNG Image|*.png|JPEG Image|*.jpg|Bitmap Image|*.bmp",
+                Title = "保存图像"
             };
 
             if (saveFileDialog.ShowDialog() == true)
@@ -125,18 +127,65 @@ namespace EndoscopyAI.Views
             }
         }
 
+        // 重置图像
         private void ImgReset(object sender, RoutedEventArgs e)
         {
+            // 确保先切换到三栏视图
+            ShowThreeColumnView();
+
+            // 重置图像逻辑
             if (DataSharingService.Instance.Patient.ImagePath != null)
             {
-                // 重新导入原始图像
-                DataSharingService.Instance.ProcessedImage = _imageDisplay.LoadImageFromFile(DataSharingService.Instance.Patient.ImagePath);
-                _imageDisplay.DisplayImage(ImageDisplay, DataSharingService.Instance.ProcessedImage);
+                try
+                {
+                    DataSharingService.Instance.ProcessedImage = _imageDisplay.LoadImageFromFile(DataSharingService.Instance.Patient.ImagePath);
+                    _imageDisplay.DisplayImage(ImageDisplay, DataSharingService.Instance.ProcessedImage);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"重置图像时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // 切换视图按钮事件处理
+        private void ToggleView_Click(object sender, RoutedEventArgs e)
+        {
+            if (StatisticsViewControl.Visibility == Visibility.Visible)
+            {
+                ShowThreeColumnView();
             }
             else
             {
-                MessageBox.Show("没有原始图像可重置", "错误", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowStatisticsView();
             }
+        }
+
+        // 显示统计视图
+        private void ShowStatisticsView()
+        {
+            StatisticsViewControl.Visibility = Visibility.Visible;
+            ThreeColumnView.Visibility = Visibility.Collapsed;
+            ToggleViewButton.Content = "进入工作区";
+        }
+
+        // 显示三栏视图
+        private void ShowThreeColumnView()
+        {
+            StatisticsViewControl.Visibility = Visibility.Collapsed;
+            ThreeColumnView.Visibility = Visibility.Visible;
+            ToggleViewButton.Content = "查看统计";
+        }
+
+        // 统计视图开始按钮点击事件处理
+        private void StartButton_Clicked(object sender, EventArgs e)
+        {
+            // 切换到三栏视图
+            ShowThreeColumnView();
+
+            // 打开患者选择窗口
+            var Window2Patients = new Window2Patients();
+            Window2Patients.Show();
         }
     }
 }

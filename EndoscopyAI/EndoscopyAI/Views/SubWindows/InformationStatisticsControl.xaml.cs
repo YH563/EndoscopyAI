@@ -24,6 +24,7 @@ namespace EndoscopyAI.Views.SubWindows
             PendingTasksText.Text = "114";     // 待处理任务数
             CompletedTasksText.Text = "51";   // 已完成任务数
             AbnormalCasesText.Text = "4";    // 异常病例数
+            FinalText.Text = "19"; // 最终诊断数
 
             // 监听控件加载完成事件
             Loaded += (s, e) => DrawBarChart();
@@ -143,10 +144,10 @@ namespace EndoscopyAI.Views.SubWindows
             }
         }
 
-        private void StartButton_Click(object sender, RoutedEventArgs e)
-        {
-            // 触发开始按钮点击事件
-            StartButtonClicked?.Invoke(this, EventArgs.Empty);
-        }
+        //private void StartButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    // 触发开始按钮点击事件
+        //    StartButtonClicked?.Invoke(this, EventArgs.Empty);
+        //}
     }
 }

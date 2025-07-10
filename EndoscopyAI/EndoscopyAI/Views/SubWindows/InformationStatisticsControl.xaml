@@ -48,31 +48,12 @@
             </Border>
 
             <!-- 开始按钮（修正版，添加图标） -->
-            <Border Grid.Column="3" CornerRadius="16" Background="#4caf50" Margin="10,0,0,0">
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="10" Opacity="0.3" ShadowDepth="3" Direction="270"/>
-                </Border.Effect>
-                <Button x:Name="StartButton" 
-                        Background="Transparent" 
-                        Foreground="White" 
-                        FontSize="24" 
-                        FontWeight="Bold"
-                        Padding="1" 
-                        BorderThickness="0" 
-                        Click="StartButton_Click"
-                        HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <!-- 播放图标 -->
-                        <Path Data="M8,5.14V19.14L19,12.14L8,5.14Z" 
-                              Fill="White" 
-                              Stretch="Uniform"
-                              Width="24"
-                              Height="24"
-                              Margin="0,0,10,0"/>
-                        <TextBlock Text="开始" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+            <Border Grid.Column="3" CornerRadius="16" Background="#E0FFFF" Padding="15" Margin="5,0,5,0">
+                <StackPanel>
+                    <TextBlock Text="明日预约数" FontSize="14" Foreground="#4682B4" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="FinalText" Text="9" FontSize="24" FontWeight="Bold" Foreground="#4169E1"/>
+                    <TextBlock Text="预估明天工作量" FontSize="12" Foreground="#546e7a" Margin="0,5,0,0"/>
+                </StackPanel>
             </Border>
         </Grid>
 

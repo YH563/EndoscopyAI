@@ -146,14 +146,14 @@
                     <StackPanel>
                         <TextBlock Text="{Binding Timestamp}" FontSize="12" Foreground="#666" Margin="0,0,0,2" HorizontalAlignment="Center"
                                   Visibility="{Binding ShouldShowTimestamp, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                        <ContentControl>
+                        <ContentControl Content="{Binding}">
                             <ContentControl.Style>
                                 <Style TargetType="ContentControl">
                                     <Setter Property="ContentTemplate">
                                         <Setter.Value>
                                             <DataTemplate>
                                                 <Border Background="#e6f7f2" CornerRadius="10" Padding="10" Margin="5" MaxWidth="400" HorizontalAlignment="Left">
-                                                    <md:MarkdownScrollViewer Markdown="{Binding Message}" Foreground="Black" Background="#e6f7f2" BorderThickness="0" FontSize="14" VerticalScrollBarVisibility="Disabled"/>
+                                                    <md:MarkdownScrollViewer Markdown="{Binding Message}" Foreground="Black" Background="#e6f7f2" BorderThickness="0" FontSize="14" VerticalScrollBarVisibility="Disabled" IsHitTestVisible="False"/>
                                                 </Border>
                                             </DataTemplate>
                                         </Setter.Value>
@@ -164,7 +164,7 @@
                                                 <Setter.Value>
                                                     <DataTemplate>
                                                         <Border Background="#1ba58c" CornerRadius="10" Padding="10" Margin="5" MaxWidth="400" HorizontalAlignment="Right">
-                                                            <md:MarkdownScrollViewer Markdown="{Binding Message}" Foreground="White" Background="#1ba58c" BorderThickness="0" FontSize="14" VerticalScrollBarVisibility="Disabled"/>
+                                                            <md:MarkdownScrollViewer Markdown="{Binding Message}" Foreground="White" Background="#1ba58c" BorderThickness="0" FontSize="14" VerticalScrollBarVisibility="Disabled" IsHitTestVisible="False"/>
                                                         </Border>
                                                     </DataTemplate>
                                                 </Setter.Value>

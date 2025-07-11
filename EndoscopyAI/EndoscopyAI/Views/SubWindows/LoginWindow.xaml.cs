@@ -1,5 +1,6 @@
-﻿using System.Windows;
+﻿using EndoscopyAI.Services;
 using EndoscopyAI.ViewModels.SubViewModels;
+using System.Windows;
 
 namespace EndoscopyAI.Views.SubWindows
 {
@@ -30,7 +31,8 @@ namespace EndoscopyAI.Views.SubWindows
                 var mainWindow = new MainWindow();
                 mainWindow.Show();
                 // 同时打开面向患者的窗口
-                var Window2Patients = new Window2Patients();
+                var qwen = new QwenChatService(); // 从配置加载
+                var Window2Patients = new Window2Patients(qwen);
                 Window2Patients.Show();
                 // 关闭登录窗口
                 this.Close();

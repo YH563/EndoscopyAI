@@ -182,10 +182,9 @@ namespace EndoscopyAI.Views
         {
             // 切换到三栏视图
             ShowThreeColumnView();
-
-            // 打开患者选择窗口
-            var Window2Patients = new Window2Patients();
-            Window2Patients.Show();
+            var qwen = new QwenChatService(); // 如果你使用的是单文件封装版
+            var mainwindow = new Window2Patients(qwen);
+            mainwindow.Show();
         }
     }
 }

@@ -164,7 +164,7 @@
                                                 <Setter.Value>
                                                     <DataTemplate>
                                                         <Border Background="#1ba58c" CornerRadius="10" Padding="10" Margin="5" MaxWidth="400" HorizontalAlignment="Right">
-                                                            <md:MarkdownScrollViewer Markdown="{Binding Message}" Foreground="White" Background="#1ba58c" BorderThickness="0" FontSize="14" VerticalScrollBarVisibility="Disabled" IsHitTestVisible="False"/>
+                                                            <TextBlock Text="{Binding Message}" Foreground="White" FontSize="14" TextWrapping="Wrap" HorizontalAlignment="Left"/>
                                                         </Border>
                                                     </DataTemplate>
                                                 </Setter.Value>

@@ -82,30 +82,52 @@ namespace EndoscopyAI.Views.SubWindows
             });
 
             PatientInputBox.Clear();
+            // 更新最后消息时间
             lastMessageTime = now;
 
             try
             {
                 string aiReply = await _chatService.ChatAsync(patientMessage); // ✅ 调用真实模型
+                DateTime replyTime = DateTime.Now;
+
+                // AI回复时，如果距离上一条消息不超过3分钟，则不显示时间戳
+                bool showAiTime = (replyTime - now).TotalMinutes >= 3;
+
                 chatHistory.Add(new ChatMessage
                 {
-                    Timestamp = DateTime.Now.ToString("HH:mm"),
+                    Timestamp = replyTime.ToString("HH:mm"),
                     Message = aiReply,
                     IsPatientMessage = false,
-                    SendTime = DateTime.Now,
-                    ShouldShowTimestamp = true
+                    SendTime = replyTime,
+                    ShouldShowTimestamp = showAiTime
                 });
+
+                // 如果AI回复显示了时间戳，需要更新lastMessageTime
+                if (showAiTime)
+                {
+                    lastMessageTime = replyTime;
+                }
             }
             catch (Exception ex)
             {
+                DateTime errorTime = DateTime.Now;
+                // 错误消息时，如果距离上一条消息不超过3分钟，则不显示时间戳
+                bool showErrorTime = (errorTime - now).TotalMinutes >= 3;
+
                 chatHistory.Add(new ChatMessage
                 {
-                    Timestamp = DateTime.Now.ToString("HH:mm"),
+                    Timestamp = errorTime.ToString("HH:mm"),
                     Message = $"⚠️ AI出错：{ex.Message}",
                     IsPatientMessage = false,
-                    SendTime = DateTime.Now,
-                    ShouldShowTimestamp = true
+                    SendTime = errorTime,
+                    ShouldShowTimestamp = showErrorTime
                 });
+
+                // 如果错误消息显示了时间戳，需要更新lastMessageTime
+                if (showErrorTime)
+                {
+                    lastMessageTime = errorTime;
+                }
             }
         }
     }

@@ -21,8 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Markdown.Xaml" Version="1.0.0" />
     <PackageReference Include="MaterialDesignColors" Version="5.2.1" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
+    <PackageReference Include="MdXaml" Version="1.27.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
       <PrivateAssets>all</PrivateAssets>

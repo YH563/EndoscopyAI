@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows" 
+        xmlns:local="clr-namespace:EndoscopyAI.Views.SubWindows"
+        xmlns:md="clr-namespace:MdXaml;assembly=MdXaml"
         mc:Ignorable="d"
         Title="智能问诊" Height="750" Width="650" ResizeMode="NoResize"
         Background="#f5f5f5"
@@ -12,6 +13,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- Material Design -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Green.xaml" />
@@ -30,12 +32,12 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="border"
-                                CornerRadius="10"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                Padding="{TemplateBinding Padding}"
-                                RenderTransformOrigin="0.5,0.5">
+                               CornerRadius="10"
+                               Background="{TemplateBinding Background}"
+                               BorderBrush="{TemplateBinding BorderBrush}"
+                               BorderThickness="{TemplateBinding BorderThickness}"
+                               Padding="{TemplateBinding Padding}"
+                               RenderTransformOrigin="0.5,0.5">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <ControlTemplate.Triggers>
@@ -73,23 +75,23 @@
                         <ControlTemplate TargetType="TextBox">
                             <Grid>
                                 <Border x:Name="border"
-                                    CornerRadius="10"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    SnapsToDevicePixels="True">
+                                   CornerRadius="10"
+                                   Background="{TemplateBinding Background}"
+                                   BorderBrush="{TemplateBinding BorderBrush}"
+                                   BorderThickness="{TemplateBinding BorderThickness}"
+                                   SnapsToDevicePixels="True">
                                     <ScrollViewer x:Name="PART_ContentHost"
-                                              Margin="{TemplateBinding Padding}"
-                                              VerticalAlignment="Stretch"/>
+                                             Margin="{TemplateBinding Padding}"
+                                             VerticalAlignment="Stretch"/>
                                 </Border>
                                 <TextBlock x:Name="placeholder"
-                                       Text="{TemplateBinding materialDesign:HintAssist.Hint}"
-                                       Foreground="{TemplateBinding Foreground}"
-                                       Opacity="0.5"
-                                       Margin="8,0"
-                                       VerticalAlignment="Center"
-                                       Visibility="Collapsed"
-                                       IsHitTestVisible="False"/>
+                                      Text="{TemplateBinding materialDesign:HintAssist.Hint}"
+                                      Foreground="{TemplateBinding Foreground}"
+                                      Opacity="0.5"
+                                      Margin="8,0"
+                                      VerticalAlignment="Center"
+                                      Visibility="Collapsed"
+                                      IsHitTestVisible="False"/>
                             </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="Text" Value="">
@@ -103,35 +105,9 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-
-            <!-- 聊天消息基础样式 -->
-            <Style x:Key="ChatMessageStyle" TargetType="Border">
-                <Setter Property="CornerRadius" Value="10"/>
-                <Setter Property="Padding" Value="10"/>
-                <Setter Property="Margin" Value="5"/>
-                <Setter Property="MaxWidth" Value="400"/>
-            </Style>
-
-            <!-- 患者消息样式（深绿底白字，靠右） -->
-            <Style x:Key="PatientMessageStyle" TargetType="Border" BasedOn="{StaticResource ChatMessageStyle}">
-                <Setter Property="Background" Value="#1ba58c"/>
-                <Setter Property="HorizontalAlignment" Value="Right"/>
-            </Style>
-
-            <!-- AI消息样式（浅绿底黑字，靠左） -->
-            <Style x:Key="AIMessageStyle" TargetType="Border" BasedOn="{StaticResource ChatMessageStyle}">
-                <Setter Property="Background" Value="#e6f7f2"/>
-                <Setter Property="HorizontalAlignment" Value="Left"/>
-            </Style>
-
-            <!-- 消息样式转换器 -->
-            <local:MessageStyleConverter x:Key="MessageStyleConverter"/>
-
-            <!-- 消息前景色转换器 -->
-            <local:MessageForegroundConverter x:Key="MessageForegroundConverter"/>
-
-            <!-- 布尔值到可见性转换器 -->
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            
+            <!-- 时间戳显示控制 -->
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         </ResourceDictionary>
     </Window.Resources>
 
@@ -142,34 +118,69 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 标题 -->
+        <!-- 标题栏 -->
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,20" VerticalAlignment="Center">
             <materialDesign:PackIcon Kind="AccountHeart" Width="32" Height="32" Foreground="#1ba58c" Margin="0,0,10,0"/>
             <TextBlock Text="智能问诊" FontSize="24" FontWeight="Bold" Foreground="#333"/>
         </StackPanel>
 
-        <!-- 聊天记录区 -->
-        <ListBox x:Name="ChatHistoryListBox" Grid.Row="1" Margin="0,0,0,10" ScrollViewer.VerticalScrollBarVisibility="Auto">
+        <!-- 聊天记录 -->
+        <ListBox x:Name="ChatHistoryListBox"
+                Grid.Row="1"
+                ItemsSource="{Binding}"
+                Background="Transparent"
+                BorderThickness="0"
+                ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="0"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Focusable" Value="False"/>
                 </Style>
             </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Vertical">
+                    <StackPanel>
                         <TextBlock Text="{Binding Timestamp}" FontSize="12" Foreground="#666" Margin="0,0,0,2" HorizontalAlignment="Center"
-                                   Visibility="{Binding ShouldShowTimestamp, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                        <Border Style="{Binding IsPatientMessage, Converter={StaticResource MessageStyleConverter}}">
-                            <TextBlock Text="{Binding Message}" FontSize="15" Foreground="{Binding IsPatientMessage, Converter={StaticResource MessageForegroundConverter}}" TextWrapping="Wrap"/>
-                        </Border>
+                                  Visibility="{Binding ShouldShowTimestamp, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <ContentControl>
+                            <ContentControl.Style>
+                                <Style TargetType="ContentControl">
+                                    <Setter Property="ContentTemplate">
+                                        <Setter.Value>
+                                            <DataTemplate>
+                                                <Border Background="#e6f7f2" CornerRadius="10" Padding="10" Margin="5" MaxWidth="400" HorizontalAlignment="Left">
+                                                    <md:MarkdownScrollViewer Markdown="{Binding Message}" Foreground="Black" Background="#e6f7f2" BorderThickness="0" FontSize="14" VerticalScrollBarVisibility="Disabled"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPatientMessage}" Value="True">
+                                            <Setter Property="ContentTemplate">
+                                                <Setter.Value>
+                                                    <DataTemplate>
+                                                        <Border Background="#1ba58c" CornerRadius="10" Padding="10" Margin="5" MaxWidth="400" HorizontalAlignment="Right">
+                                                            <md:MarkdownScrollViewer Markdown="{Binding Message}" Foreground="White" Background="#1ba58c" BorderThickness="0" FontSize="14" VerticalScrollBarVisibility="Disabled"/>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ContentControl.Style>
+                        </ContentControl>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
         <!-- 输入区 -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
             <TextBox x:Name="PatientInputBox"
                      Style="{StaticResource RoundedTextBoxStyle}"
                      AcceptsReturn="True"
@@ -179,10 +190,10 @@
                      materialDesign:HintAssist.Hint=" "
                      VerticalContentAlignment="Top"/>
             <Button Content="发送"
+                    Style="{StaticResource GreenRaisedButton}"
                     Height="50"
                     Width="100"
                     Margin="10,0,0,0"
-                    Style="{StaticResource GreenRaisedButton}"
                     FontSize="16"
                     FontWeight="Bold"
                     Click="SendMessage_Click"/>

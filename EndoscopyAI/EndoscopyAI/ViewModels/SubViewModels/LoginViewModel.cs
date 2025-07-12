@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using EndoscopyAI.Tests;
 
 namespace EndoscopyAI.ViewModels.SubViewModels
 {
@@ -31,7 +32,15 @@ namespace EndoscopyAI.ViewModels.SubViewModels
                 return false;
             }
 
-            if ((userId == "admin" && password == "123456") || GlobalDbService.DoctorDbService.CheckPassword(userId, password))
+            // 打开管理员界面
+            if (userId == "admin" && password == "admin")
+            {
+                var testWindow = new TestWindow();
+                testWindow.Show();
+                return true;
+            }
+
+            if ((userId == "user" && password == "123456") || GlobalDbService.DoctorDbService.CheckPassword(userId, password))
                 return true;
             else
             {

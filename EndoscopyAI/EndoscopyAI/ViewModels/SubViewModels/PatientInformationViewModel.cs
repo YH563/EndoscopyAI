@@ -25,6 +25,9 @@ namespace EndoscopyAI.ViewModels.SubViewModels
         // 获取所有病人信息
         List<Patient>? GetAllPatientInformation();
 
+        // 获取最近n天内每天的病人数量
+        List<int>? GetPatientCountByDay(int day);
+
         // 根据名字获取所有对应的病人信息
         List<Patient>? GetAllPatientInformationByName(string name);
 
@@ -36,6 +39,9 @@ namespace EndoscopyAI.ViewModels.SubViewModels
 
         // 删除病人信息
         void DeletePatientInformation(int ID);
+
+        // 删除所有病人信息
+        void DeleteAllPatientInformation();
     }
 
     public class PatientInformation : IPatientInformation
@@ -119,6 +125,12 @@ namespace EndoscopyAI.ViewModels.SubViewModels
 
         }
 
+        // 获取最近n天内每天的病人数量
+        public List<int>? GetPatientCountByDay(int days)
+        {
+            return GlobalDbService.PatientDbService.GetPatientCountByDay(days);
+        }
+
         // 获取所有病人信息
         public List<Patient>? GetAllPatientInformation()
         {
@@ -126,6 +138,7 @@ namespace EndoscopyAI.ViewModels.SubViewModels
             if(patients.Count == 0) return null;
             else return patients;
         }
+
         // 根据名字获取所有对应的病人信息
         public List<Patient>? GetAllPatientInformationByName(string name)
         {
@@ -149,6 +162,12 @@ namespace EndoscopyAI.ViewModels.SubViewModels
         public void DeletePatientInformation(int ID)
         {
             GlobalDbService.PatientDbService.DeletePatient(ID);
+        }
+
+        // 删除所有病人信息
+        public void DeleteAllPatientInformation()
+        {
+            GlobalDbService.PatientDbService.DeleteAllPatients();
         }
     }
 }

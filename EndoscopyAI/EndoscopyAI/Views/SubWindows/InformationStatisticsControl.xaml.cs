@@ -1,4 +1,7 @@
-﻿using System;
+﻿using EndoscopyAI.ViewModels.SubViewModels;
+using LiveCharts;
+using LiveCharts.Wpf;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -8,13 +11,11 @@ namespace EndoscopyAI.Views.SubWindows
 {
     public partial class InformationStatisticsControl : UserControl
     {
-        // 添加一个事件用于通知主窗口"开始"按钮被点击
-        public event EventHandler StartButtonClicked;
+        IPatientInformation patientInformation = new PatientInformation();
 
-        // 修改为近七天的患者数量数据
-        private readonly int[] patientCounts = { 28, 36, 25, 19, 21, 32, 40 };
-        // 修改为近七天的日期
-        private readonly string[] days = { "周二", "周三", "周四", "周五", "周六", "周日", "周一" };
+        public SeriesCollection SeriesCollection { get; set; }
+        public string[] Labels { get; set; }
+        public Func<double, string> Formatter { get; set; }
 
         public InformationStatisticsControl()
         {
@@ -26,142 +27,47 @@ namespace EndoscopyAI.Views.SubWindows
             AbnormalCasesText.Text = "4";      // 异常病例数
             FinalText.Text = "19";             // 最终诊断数
 
-            // 更新柱状图标题
-            UpdateChartTitle();
+            // 初始化数据 - 这里使用示例数据，实际使用时可以从数据库获取
+            var visitData = GetRecentVisitData();
 
-            // 监听控件加载完成事件
-            Loaded += (s, e) => DrawBarChart();
+            // 设置图表数据
+            SeriesCollection = new SeriesCollection
+            {
+                new LineSeries
+                {
+                    Title = "就诊人数",
+                    Values = new ChartValues<int>(visitData.Select(x => x.Count).ToList()),
+                    StrokeThickness = 2,
+                    PointGeometrySize = 8,
+                    Fill = System.Windows.Media.Brushes.Transparent
+                }
+            };
 
-            // 监听控件大小变化和柱状图画布大小变化
-            SizeChanged += (s, e) => DrawBarChart();
-            BarChartCanvas.SizeChanged += (s, e) => DrawBarChart();
+            // 设置X轴标签（日期）
+            Labels = visitData.Select(x => x.Date.ToString("MM-dd")).ToArray();
+
+            // 格式化X轴标签
+            Formatter = value => value >= 0 && value < Labels.Length ? Labels[(int)value] : "";
+
+            DataContext = this;
         }
 
-        // 更新柱状图标题
-        private void UpdateChartTitle()
+        private List<(DateTime Date, int Count)> GetRecentVisitData()
         {
-            // 找到标题文本块并更新内容
-            var titleTextBlock = this.FindName("ChartTitleTextBlock") as TextBlock;
-            if (titleTextBlock != null)
+            var random = new Random();
+            var today = DateTime.Today;
+            List<int> patientCounts = patientInformation.GetPatientCountByDay(7);
+
+            var data = new List<(DateTime, int)>();
+            for (int i = 6; i >= 0; i--)
             {
-                titleTextBlock.Text = "近7日接诊患者数";
-            }
-        }
-
-        private void DrawBarChart()
-        {
-            if (BarChartCanvas.ActualWidth <= 0 || BarChartCanvas.ActualHeight <= 0)
-                return;
-
-            BarChartCanvas.Children.Clear();
-
-            double canvasWidth = BarChartCanvas.ActualWidth;
-            double canvasHeight = BarChartCanvas.ActualHeight;
-
-            // 计算柱状图尺寸参数
-            double barWidth = canvasWidth * 0.08;  // 柱宽为画布宽度的8%，调整以适应7个柱状图
-            double gap = canvasWidth * 0.035;      // 柱间距为画布宽度的3.5%，减小间距以适应更多柱状图
-            double maxBarHeight = canvasHeight * 0.8; // 最大柱高为画布高度的80%
-
-            // 找出最大值用于比例计算
-            double maxCount = 1;
-            foreach (var v in patientCounts)
-                if (v > maxCount) maxCount = v;
-
-            // 计算起始X位置
-            double totalWidth = patientCounts.Length * barWidth + (patientCounts.Length - 1) * gap;
-            double startX = (canvasWidth - totalWidth) / 2;
-
-            for (int i = 0; i < patientCounts.Length; i++)
-            {
-                // 计算柱高
-                double barHeight = (patientCounts[i] / maxCount) * maxBarHeight;
-
-                // 创建柱状体
-                var rect = new Rectangle
-                {
-                    Width = barWidth,
-                    Height = barHeight,
-                    Fill = new SolidColorBrush(Color.FromRgb(25, 118, 210)), // #1976d2
-                    RadiusX = 4,
-                    RadiusY = 4,
-                    VerticalAlignment = VerticalAlignment.Bottom
-                };
-
-                // 定位柱状体
-                Canvas.SetLeft(rect, startX + i * (barWidth + gap));
-                Canvas.SetBottom(rect, 30); // 底部留出空间放日期标签
-                BarChartCanvas.Children.Add(rect);
-
-                // 数值标签
-                var valueText = new TextBlock
-                {
-                    Text = patientCounts[i].ToString(),
-                    FontSize = 14,
-                    FontWeight = FontWeights.Bold,
-                    Foreground = new SolidColorBrush(Color.FromRgb(25, 118, 210)),
-                    TextAlignment = TextAlignment.Center,
-                    Width = barWidth
-                };
-                Canvas.SetLeft(valueText, startX + i * (barWidth + gap));
-                Canvas.SetBottom(valueText, barHeight + 35); // 柱体上方
-                BarChartCanvas.Children.Add(valueText);
-
-                // 日期标签
-                var dayText = new TextBlock
-                {
-                    Text = days[i],
-                    FontSize = 12, // 略微减小字体大小以适应更多标签
-                    Foreground = Brushes.Gray,
-                    TextAlignment = TextAlignment.Center,
-                    Width = barWidth
-                };
-                Canvas.SetLeft(dayText, startX + i * (barWidth + gap));
-                Canvas.SetBottom(dayText, 10); // 画布底部
-                BarChartCanvas.Children.Add(dayText);
+                // 模拟数据：工作日人数较多，周末较少
+                var date = today.AddDays(-i);
+                var count = patientCounts[i];
+                data.Add((date, count));
             }
 
-            // 添加Y轴刻度
-            AddYAxisLabels(maxCount, maxBarHeight, canvasHeight);
-        }
-
-        private void AddYAxisLabels(double maxValue, double maxBarHeight, double canvasHeight)
-        {
-            // 添加5个刻度
-            for (int i = 0; i <= 4; i++)
-            {
-                double value = maxValue * i / 4;
-                double yPosition = canvasHeight - 30 - (maxBarHeight * i / 4);
-
-                var line = new Line
-                {
-                    X1 = 10,
-                    X2 = BarChartCanvas.ActualWidth - 10,
-                    Y1 = yPosition,
-                    Y2 = yPosition,
-                    Stroke = Brushes.LightGray,
-                    StrokeThickness = 0.5,
-                    StrokeDashArray = new DoubleCollection { 4, 2 }
-                };
-                BarChartCanvas.Children.Add(line);
-
-                var label = new TextBlock
-                {
-                    Text = value.ToString("0"),
-                    FontSize = 10,
-                    Foreground = Brushes.Gray,
-                    Margin = new Thickness(0, 0, 5, 0)
-                };
-                Canvas.SetRight(label, BarChartCanvas.ActualWidth - 5);
-                Canvas.SetTop(label, yPosition - 10);
-                BarChartCanvas.Children.Add(label);
-            }
-        }
-
-        private void StartButton_Click(object sender, RoutedEventArgs e)
-        {
-            // 触发开始按钮点击事件
-            StartButtonClicked?.Invoke(this, EventArgs.Empty);
+            return data;
         }
     }
 }

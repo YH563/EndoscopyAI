@@ -103,12 +103,6 @@ namespace EndoscopyAI.Services
                 int maxPatientId = _db.Patients.Any() ? _db.Patients.Max(p => p.PatientID) : 0;
                 patient.PatientID = maxPatientId + 1;
 
-                // 获取时间信息
-                DateTime now = DateTime.Now;
-                DateTime date = DateTime.Today;
-                patient.VisitTime = now.ToString("yyyy-MM-dd HH:mm:ss");
-                patient.VisitDate = date.ToString("yyyy-MM-dd");
-
                 _db.Patients.Add(patient);
                 _db.SaveChanges();
             }
@@ -207,6 +201,40 @@ namespace EndoscopyAI.Services
                 _db.SaveChanges();
             }
         }
+
+        // 删除所有病人信息
+        public void DeleteAllPatients()
+        {
+            _db.Patients.RemoveRange(_db.Patients);
+            _db.SaveChanges();
+        }
+
+        // 获取最近n天内每天的病人数量
+        public List<int> GetPatientCountByDay(int days)
+        {
+            DateTime startDate = DateTime.Today.AddDays(-days + 1);
+            var endDate = DateTime.Today;
+
+            var dateList = Enumerable.Range(0, days)
+                .Select(i => startDate.AddDays(i).ToString("yyyy-MM-dd"))
+                .ToList();
+
+            // 先获取所有数据到内存中
+            var patients = _db.Patients.AsEnumerable()
+                .Where(p => {
+                    var visitDate = DateTime.Parse(p.VisitDate);
+                    return visitDate >= startDate && visitDate <= endDate;
+                })
+                .ToList();
+
+            // 然后在内存中进行统计
+            var dailyCounts = dateList
+                .Select(date => patients.Count(p => p.VisitDate == date))
+                .ToList();
+
+            return dailyCounts;
+        }
+
     }
 
     // 医生信息

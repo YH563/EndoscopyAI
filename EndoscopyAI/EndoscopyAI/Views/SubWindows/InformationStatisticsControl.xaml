@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="500" d:DesignWidth="900">
     <Grid Margin="20">
@@ -58,16 +59,36 @@
         </Grid>
 
         <!-- 柱状图区域 -->
-        <Border Grid.Row="1" CornerRadius="16" Background="White" Padding="20">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock x:Name="ChartTitleTextBlock" Text="近7日接诊患者数" FontSize="18" FontWeight="Bold" Foreground="#1976d2" Margin="0,0,0,10"/>
-                <Canvas x:Name="BarChartCanvas" Grid.Row="1"/>
-            </Grid>
-        </Border>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="近七日内就诊患者" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Margin="5"/>
+                <lvc:CartesianChart Grid.Row="1" Series="{Binding SeriesCollection}" 
+                   LegendLocation="None"
+                   Hoverable="False" 
+                   >
+                <lvc:CartesianChart.AxisX>
+                    <lvc:Axis  
+                 Labels="{Binding Labels}" 
+                 FontSize="12"
+                 LabelFormatter="{Binding Formatter}">
+                        <lvc:Axis.Separator>
+                            <lvc:Separator StrokeThickness="0.5" Stroke="#000000" StrokeDashArray="2,2"/>
+                        </lvc:Axis.Separator>
+                    </lvc:Axis>
+                </lvc:CartesianChart.AxisX>
+                <lvc:CartesianChart.AxisY>
+                    <lvc:Axis 
+                 FontSize="12"
+                 MinValue="0">
+                        <lvc:Axis.Separator>
+                            <lvc:Separator StrokeThickness="0.5" Stroke="#505050" StrokeDashArray="2,2"/>
+                        </lvc:Axis.Separator>
+                    </lvc:Axis>
+                </lvc:CartesianChart.AxisY>
+            </lvc:CartesianChart>
+        </Grid>
     </Grid>
 </UserControl>

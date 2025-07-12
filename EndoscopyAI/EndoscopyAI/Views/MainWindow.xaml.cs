@@ -42,7 +42,7 @@ namespace EndoscopyAI.Views
             ToggleViewButton.Content = "进入工作区";
 
             // 订阅统计视图的开始按钮点击事件
-            StatisticsViewControl.StartButtonClicked += StartButton_Clicked;
+            //StatisticsViewControl.StartButtonClicked += StartButton_Clicked;
         }
 
         private void OnImageChanged(object? sender, EventArgs e)

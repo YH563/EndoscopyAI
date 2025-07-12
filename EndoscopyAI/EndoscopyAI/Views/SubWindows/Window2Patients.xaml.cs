@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EndoscopyAI.Services;
+using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Data;
@@ -6,16 +7,6 @@ using System.Windows.Media;
 
 namespace EndoscopyAI.Views.SubWindows
 {
-    // 聊天消息数据模型
-    public class ChatMessage
-    {
-        public string Timestamp { get; set; } // 显示用时间戳（HH:mm）
-        public string Message { get; set; }
-        public bool IsPatientMessage { get; set; }
-        public DateTime SendTime { get; set; } // 实际发送时间
-        public bool ShouldShowTimestamp { get; set; } // 是否显示时间戳
-    }
-
     // 消息样式转换器
     public class MessageStyleConverter : IValueConverter
     {
@@ -82,57 +73,106 @@ namespace EndoscopyAI.Views.SubWindows
         }
     }
 
+    // 聊天消息数据模型
+    public class ChatMessage
+    {
+        public string Timestamp { get; set; }      // “HH:mm”
+        public string Message { get; set; }        // Markdown 文本
+        public bool IsPatientMessage { get; set; } // true = 患者
+        public DateTime SendTime { get; set; }
+        public bool ShouldShowTimestamp { get; set; }
+    }
+
     public partial class Window2Patients : Window
     {
-        private ObservableCollection<ChatMessage> chatHistory = new ObservableCollection<ChatMessage>();
-        private DateTime lastMessageTime = DateTime.MinValue; // 跟踪上一条消息时间
+        private readonly ObservableCollection<ChatMessage> chatHistory = new();
+        private DateTime lastMessageTime = DateTime.MinValue;
+        private readonly QwenChatService _chatService;//通义千问服务
 
-        public Window2Patients()
+        public Window2Patients(QwenChatService chatService)
         {
             InitializeComponent();
+            _chatService = chatService ?? throw new ArgumentNullException(nameof(chatService));
             ChatHistoryListBox.ItemsSource = chatHistory;
         }
 
-        private void SendMessage_Click(object sender, RoutedEventArgs e)
+        //private void SendMessage_Click(object sender, RoutedEventArgs e)
+        //{
+        //    string patientMessage = PatientInputBox.Text?.Trim();
+        //    if (string.IsNullOrEmpty(patientMessage)) return;
+
+        //    DateTime now = DateTime.Now;
+        //    bool showTime = (now - lastMessageTime).TotalMinutes >= 3 || lastMessageTime == DateTime.MinValue;
+
+        //    // 患者消息
+        //    chatHistory.Add(new ChatMessage
+        //    {
+        //        Timestamp = now.ToString("HH:mm"),
+        //        Message = patientMessage,
+        //        IsPatientMessage = true,
+        //        SendTime = now,
+        //        ShouldShowTimestamp = showTime
+        //    });
+
+        //    // AI 回复内容
+        //    chatHistory.Add(new ChatMessage
+        //    {
+        //        Timestamp = now.ToString("HH:mm"),
+        //        Message = "这是 **AI** 的 _Markdown_ 回复示例",
+        //        IsPatientMessage = false,
+        //        SendTime = now,
+        //        ShouldShowTimestamp = false   // 同一分钟内不再显示时间
+        //    });
+
+        //    lastMessageTime = now;
+        //    PatientInputBox.Clear();
+        //}
+
+        // 如果 XAML 仍然绑定了 Submit_Click，可保留此转发
+        private async void SendMessage_Click(object sender, RoutedEventArgs e)
         {
-            string patientMessage = PatientInputBox.Text;
-            if (!string.IsNullOrWhiteSpace(patientMessage))
+            string patientMessage = PatientInputBox.Text?.Trim();
+            if (string.IsNullOrEmpty(patientMessage)) return;
+
+            DateTime now = DateTime.Now;
+            bool showTime = (now - lastMessageTime).TotalMinutes >= 3 || lastMessageTime == DateTime.MinValue;
+
+            // 添加患者消息
+            chatHistory.Add(new ChatMessage
             {
-                DateTime currentTime = DateTime.Now;
-                bool showTimestamp = (currentTime - lastMessageTime).TotalMinutes >= 3 || lastMessageTime == DateTime.MinValue;
+                Timestamp = now.ToString("HH:mm"),
+                Message = patientMessage,
+                IsPatientMessage = true,
+                SendTime = now,
+                ShouldShowTimestamp = showTime
+            });
 
-                // 添加患者消息
+            PatientInputBox.Clear();
+            lastMessageTime = now;
+
+            try
+            {
+                string aiReply = await _chatService.ChatAsync(patientMessage); // ✅ 调用真实模型
                 chatHistory.Add(new ChatMessage
                 {
-                    Timestamp = currentTime.ToString("HH:mm"),
-                    Message = patientMessage,
-                    IsPatientMessage = true,
-                    SendTime = currentTime,
-                    ShouldShowTimestamp = showTimestamp
-                });
-                System.Diagnostics.Debug.WriteLine($"添加患者消息: {patientMessage}, IsPatientMessage: true, ShouldShowTimestamp: {showTimestamp}");
-
-                // 添加AI回复
-                string aiResponse = "这是AI的回复"; // 实际应用中替换为AI服务调用
-                showTimestamp = (currentTime - chatHistory[chatHistory.Count - 1].SendTime).TotalMinutes >= 3;
-                chatHistory.Add(new ChatMessage
-                {
-                    Timestamp = currentTime.ToString("HH:mm"),
-                    Message = aiResponse,
+                    Timestamp = DateTime.Now.ToString("HH:mm"),
+                    Message = aiReply,
                     IsPatientMessage = false,
-                    SendTime = currentTime,
-                    ShouldShowTimestamp = showTimestamp
+                    SendTime = DateTime.Now,
+                    ShouldShowTimestamp = true
                 });
-                System.Diagnostics.Debug.WriteLine($"添加AI消息: {aiResponse}, IsPatientMessage: false, ShouldShowTimestamp: {showTimestamp}");
-
-                lastMessageTime = currentTime;
-                PatientInputBox.Clear();
             }
-        }
-
-        private void Submit_Click(object sender, RoutedEventArgs e)
-        {
-            SendMessage_Click(sender, e);
+            catch (Exception ex)
+            {
+                chatHistory.Add(new ChatMessage
+                {
+                    Timestamp = DateTime.Now.ToString("HH:mm"),
+                    Message = $"⚠️ AI出错：{ex.Message}",
+                    IsPatientMessage = false,
+                    SendTime = DateTime.Now,
+                    ShouldShowTimestamp = true
+                });
+            }
         }
     }
 }

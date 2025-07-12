@@ -41,8 +41,6 @@ namespace EndoscopyAI.Views
             ThreeColumnView.Visibility = Visibility.Collapsed;
             ToggleViewButton.Content = "进入工作区";
 
-            // 订阅统计视图的开始按钮点击事件
-            //StatisticsViewControl.StartButtonClicked += StartButton_Clicked;
         }
 
         private void OnImageChanged(object? sender, EventArgs e)
@@ -182,10 +180,9 @@ namespace EndoscopyAI.Views
         {
             // 切换到三栏视图
             ShowThreeColumnView();
-
-            // 打开患者选择窗口
-            var Window2Patients = new Window2Patients();
-            Window2Patients.Show();
+            var qwen = new QwenChatService(); // 如果你使用的是单文件封装版
+            var mainwindow = new Window2Patients(qwen);
+            mainwindow.Show();
         }
     }
 }
